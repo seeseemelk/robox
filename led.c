@@ -25,6 +25,8 @@ void led_init()
 {
 	DDRA = MASK(LED1_R) | MASK(LED1_G) | MASK(LED1_B)
 	     | MASK(LED2_R) | MASK(LED2_G) | MASK(LED2_B);
+	PORTA |= (MASK(LED1_R) | MASK(LED1_G) | MASK(LED1_B)
+		     | MASK(LED2_R) | MASK(LED2_G) | MASK(LED2_B));
 }
 
 void led_set1(int r, int g, int b)

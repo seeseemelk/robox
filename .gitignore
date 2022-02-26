@@ -1,1 +1,7 @@
-bin
+# Binary files
+/bin
+
+# Eclipse files
+/.project
+/.cproject
+/.settings
