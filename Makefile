@@ -1,5 +1,5 @@
 # The name of the project
-NAME = blspeak
+NAME = robox
 
 # The directory to store binary files into
 BINS = bin
