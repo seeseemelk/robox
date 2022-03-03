@@ -35,7 +35,7 @@ flash: $(ELF)
 
 help:
 	@echo "Targets:"
-	@echo "  all   - (default) Builds the firmware. Same as the hex target"
+	@echo "  all   - (default) Builds the firmware. Same as the elf target"
 	@echo "  bin   - Produces a bin file"
 	@echo "  clean - Cleans the compiled objects"
 	@echo "  elf   - Produces an ELF file"
