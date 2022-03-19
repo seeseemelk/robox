@@ -3,6 +3,7 @@
 #include "fix_fft.h"
 #include "led.h"
 #include "power.h"
+#include "bootloader_test.h"
 
 #include <avr/interrupt.h>
 
@@ -23,15 +24,16 @@
 int main(int /*argc*/, char** /*argv*/)
 {
 	cli();
-	led_init();
+	bootloader_test();
+	/*led_init();
 	power_init();
-	adc_init();
+	adc_init();*/
 	sei();
 
 //	u16 i = 0;
 	while (1)
 	{
-		audio_render_effects();
+		//audio_render_effects();
 //		led_set2(
 //				waveAt(i + 0),
 //				waveAt(i + 3),
