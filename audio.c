@@ -16,7 +16,7 @@ void audio_init()
 {
 }
 
-u8 amplitude_at(u8 index, i16 /*scale*/)
+u8 amplitude_at(u8 index) // , i16 scale)
 {
 	i16 real = s_audio_real[index];
 	i16 imag = s_audio_imag[index];
@@ -44,14 +44,14 @@ void audio_render_effects()
 	else
 	{
 		led_set1(
-				amplitude_at(2, scale),
-				amplitude_at(1, scale),
-				amplitude_at(0, scale)
+				amplitude_at(2),//, scale),
+				amplitude_at(1),//, scale),
+				amplitude_at(0) //, scale)
 		);
 		led_set2(
 				s_status++,
-				amplitude_at(3, scale),
-				amplitude_at(4, scale)
+				amplitude_at(3),//, scale),
+				amplitude_at(4)//, scale)
 		);
 	}
 }
