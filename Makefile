@@ -7,6 +7,7 @@ BINS = bin
 # The binaries that can be created
 BIN = $(BINS)/$(NAME).bin
 HEX = $(BINS)/$(NAME).hex
+HEX_TEXT = $(BINS)/$(NAME).txt
 ELF = $(BINS)/$(NAME).elf
 
 # The sources that will be used
@@ -26,22 +27,24 @@ CFLAGS = -mmcu=attiny461a -mint8 -Os -Wall -Wextra -Werror -std=c99 -flto
 all: elf
 elf: $(ELF)
 hex: $(HEX)
+hex-text: $(HEX_TEXT)
 bin: $(BIN) 
 clean:
-	rm -f $(BIN) $(HEX) $(ELF) $(OBJ) $(DEP)
+	rm -f $(BIN) $(HEX) $(HEX_TEXT) $(ELF) $(OBJ) $(DEP)
 	
 flash: $(ELF)
 	avrdude -p t461 -c stk500 -P /dev/ttyUSB0 -U flash:w:$(ELF) -v
 
 help:
 	@echo "Targets:"
-	@echo "  all   - (default) Builds the firmware. Same as the elf target"
-	@echo "  bin   - Produces a bin file"
-	@echo "  clean - Cleans the compiled objects"
-	@echo "  elf   - Produces an ELF file"
-	@echo "  flash - Flash the project onto a chip"
-	@echo "  help  - Shows this help file"
-	@echo "  hex   - Produces a hex file"
+	@echo "  all       - (default) Builds the firmware. Same as the elf target"
+	@echo "  bin       - Produces a bin file"
+	@echo "  clean     - Cleans the compiled objects"
+	@echo "  elf       - Produces an ELF file"
+	@echo "  flash     - Flash the project onto a chip"
+	@echo "  help      - Shows this help file"
+	@echo "  hex       - Produces a hex file"
+	@echo "  hex-text  - Produces an intel hex file"
 
 $(ELF): $(OBJ)
 	avr-gcc $(CFLAGS) -o $@ $^
@@ -49,6 +52,9 @@ $(ELF): $(OBJ)
 
 $(HEX): $(ELF)
 	avr-objcopy -O binary $(ELF) $(HEX)
+
+$(HEX_TEXT): $(ELF)
+	avr-objcopy -O ihex $(ELF) $(HEX_TEXT) 
 	
 $(BIN): $(ELF)
 	avr-objcopy -O ihex $(ELF) $(BIN)
