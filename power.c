@@ -3,14 +3,13 @@
 
 #include <avr/io.h>
 
-#define SHDWN_AMP 0
-#define SHDWN_BLE 1
-#define PSU_CHG 2
+#define SHDWN_BLE 3
+#define PSU_CHG 1
 #define PSU_STBY 3
 
 void power_init()
 {
-	DDRB |= MASK(SHDWN_AMP) | MASK(SHDWN_BLE);
+	DDRA |= MASK(SHDWN_BLE);
 }
 
 bool power_is_psu_charging()
@@ -23,22 +22,12 @@ bool power_is_psu_standby()
 	return TEST_BIT_SET(PINB, PSU_CHG);
 }
 
-void power_enable_amp()
-{
-	SET_BIT(PORTB, SHDWN_AMP);
-}
-
-void power_disable_amp()
-{
-	CLEAR_BIT(PORTB, SHDWN_AMP);
-}
-
 void power_enable_ble()
 {
-	SET_BIT(PORTB, SHDWN_AMP);
+	CLEAR_BIT(PORTA, SHDWN_BLE);
 }
 
 void power_disable_ble()
 {
-	CLEAR_BIT(PORTB, SHDWN_AMP);
+	SET_BIT(PORTA, SHDWN_BLE);
 }

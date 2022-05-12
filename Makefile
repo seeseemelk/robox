@@ -19,7 +19,8 @@ OBJ = $(SRC:%.c=$(BINS)/%.o)
 DEP = $(OBJ:%.o=%.d)
 
 # Flags that will be passed to GCC
-CFLAGS = -mmcu=attiny461a -mint8 -Os -Wall -Wextra -Werror -std=c99 -flto
+CFLAGS = -mmcu=attiny461a -mint8 -Os -Wall -Wextra -Werror -std=c99 -flto \
+	-DF_CPU=8000000
 
 .PHONY: all clean flash help
 

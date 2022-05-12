@@ -41,13 +41,13 @@ void led_init()
 	OCR0A = 4;
 	// Reset timer on output compare
 	TCCR0A = MASK(WGM00);
-	// Prescaler: clkIO / 256
-	TCCR0B = MASK(CS02);
+	// Prescaler: clkIO / 64
+	TCCR0B = MASK(CS01) | MASK(CS00);
 }
 
 static u8 convertBrightness(u8 value)
 {
-	return value & 0xF;
+	return (value & 0x3F);
 }
 
 void led_set1(u8 r, u8 g, u8 b)
@@ -81,6 +81,6 @@ ISR(TIMER0_COMPA_vect)
 	if (s_counter < s_led2.b)
 		CLEAR_BIT(mask, LED2_B);
 
-	s_counter = (s_counter - 1) & 0xF;
+	s_counter = (s_counter - 1) & 0x3F;
 	PORTA = (PORTA & ~PIN_MASKS) | mask;
 }
