@@ -4,13 +4,13 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define LED1_R 2
-#define LED1_G 1
-#define LED1_B 0
+#define LED1_R PORTA2
+#define LED1_G PORTA1
+#define LED1_B PORTA0
 
-#define LED2_R 6
-#define LED2_G 5
-#define LED2_B 4
+#define LED2_R PORTA6
+#define LED2_G PORTA5
+#define LED2_B PORTA4
 
 #define PIN_MASKS (MASK(LED1_R) | MASK(LED1_G) | MASK(LED1_B) \
 	     | MASK(LED2_R) | MASK(LED2_G) | MASK(LED2_B))
@@ -24,6 +24,8 @@ typedef struct
 
 static Color s_led1;
 static Color s_led2;
+static Color _s_led1;
+static Color _s_led2;
 
 static unsigned int s_counter;
 
@@ -32,7 +34,7 @@ void led_init()
 	// Configure the LEDs as outputs
 	DDRA |= PIN_MASKS;
 	// Turns the LEDs off
-	PORTA |= PIN_MASKS;
+	PORTA &= ~PIN_MASKS;
 
 	// Configure Timer 0 to call the output-compare match interrupt
 	// Enable Timer 0 output compare interrupt A
@@ -43,6 +45,8 @@ void led_init()
 	TCCR0A = MASK(WGM00);
 	// Prescaler: clkIO / 64
 	TCCR0B = MASK(CS01) | MASK(CS00);
+	// TCCR0B = MASK(CS02);
+	PORTA |= PIN_MASKS;
 }
 
 static u8 convertBrightness(u8 value)
@@ -66,21 +70,27 @@ void led_set2(u8 r, u8 g, u8 b)
 
 ISR(TIMER0_COMPA_vect)
 {
-	uint8_t mask = PIN_MASKS;
-	if (s_counter < s_led1.r)
-		CLEAR_BIT(mask, LED1_R);
-	if (s_counter < s_led1.g)
-		CLEAR_BIT(mask, LED1_G);
-	if (s_counter < s_led1.b)
-		CLEAR_BIT(mask, LED1_B);
+	uint8_t mask = 0;
+	if (s_counter < _s_led1.r)
+		SET_BIT(mask, LED1_R);
+	if (s_counter < _s_led1.g)
+		SET_BIT(mask, LED1_G);
+	if (s_counter < _s_led1.b)
+		SET_BIT(mask, LED1_B);
 
-	if (s_counter < s_led2.r)
-		CLEAR_BIT(mask, LED2_R);
-	if (s_counter < s_led2.g)
-		CLEAR_BIT(mask, LED2_G);
-	if (s_counter < s_led2.b)
-		CLEAR_BIT(mask, LED2_B);
+	if (s_counter < _s_led2.r)
+		SET_BIT(mask, LED2_R);
+	if (s_counter < _s_led2.g)
+		SET_BIT(mask, LED2_G);
+	if (s_counter < _s_led2.b)
+		SET_BIT(mask, LED2_B);
 
 	s_counter = (s_counter - 1) & 0x3F;
+
+	if (s_counter == 0)
+	{
+		_s_led1 = s_led1;
+		_s_led2 = s_led2;
+	}
 	PORTA = (PORTA & ~PIN_MASKS) | mask;
 }
