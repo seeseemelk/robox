@@ -22,7 +22,7 @@ u8 amplitude_at(u8 index)//, i16 scale)
 	i16 imag = s_audio_imag[index];
 
 	i16 magnitude = (real * real) + (imag * imag);
-	return magnitude / 256 / 2;
+	return magnitude / 256 / 4;
 }
 
 // static u8 s_status = 0;
@@ -75,5 +75,5 @@ void adc_on_read(u8 value)
 		}
 	}
 
-	decimate = ~decimate;
+	decimate = !decimate;
 }
