@@ -1,4 +1,6 @@
 #include "led.h"
+
+#include "config.h"
 #include "defs.h"
 
 #include <avr/io.h>
@@ -14,6 +16,14 @@
 
 #define PIN_MASKS (MASK(LED1_R) | MASK(LED1_G) | MASK(LED1_B) \
 	     | MASK(LED2_R) | MASK(LED2_G) | MASK(LED2_B))
+
+#ifdef INVERT_LEDS
+#define LED_MASK_INIT PIN_MASKS
+#define ENABLE_LED(var, bit) CLEAR_BIT(var, bit)
+#else
+#define LED_MASK_INIT 0
+#define ENABLE_LED(var, bit) SET_BIT(var, bit)
+#endif
 
 typedef struct
 {
@@ -70,20 +80,20 @@ void led_set2(u8 r, u8 g, u8 b)
 
 ISR(TIMER0_COMPA_vect)
 {
-	uint8_t mask = 0;
+	uint8_t mask = LED_MASK_INIT;
 	if (s_counter < _s_led1.r)
-		SET_BIT(mask, LED1_R);
+		ENABLE_LED(mask, LED1_R);
 	if (s_counter < _s_led1.g)
-		SET_BIT(mask, LED1_G);
+		ENABLE_LED(mask, LED1_G);
 	if (s_counter < _s_led1.b)
-		SET_BIT(mask, LED1_B);
+		ENABLE_LED(mask, LED1_B);
 
 	if (s_counter < _s_led2.r)
-		SET_BIT(mask, LED2_R);
+		ENABLE_LED(mask, LED2_R);
 	if (s_counter < _s_led2.g)
-		SET_BIT(mask, LED2_G);
+		ENABLE_LED(mask, LED2_G);
 	if (s_counter < _s_led2.b)
-		SET_BIT(mask, LED2_B);
+		ENABLE_LED(mask, LED2_B);
 
 	s_counter = (s_counter - 1) & 0x3F;
 

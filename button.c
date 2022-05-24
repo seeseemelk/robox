@@ -64,7 +64,7 @@ bool button_is_pressed()
 void on_button_interrupt()
 {
 	cli();
-	powerState = ~powerState;
+	powerState = !powerState;
 
 	// debounce
 	_delay_ms(100);
