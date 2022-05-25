@@ -4,7 +4,7 @@
 /**
  * Uncomment when LEDs should be inverted
  */
-//#define INVERT_LEDS
+#define INVERT_LEDS
 
 
 
