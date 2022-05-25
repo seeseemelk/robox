@@ -8,6 +8,9 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include <avr/sleep.h>
+
+
 
 // const i8 s_wave[] PROGMEM =
 // {
@@ -155,49 +158,64 @@ void music()
 // }
 
 /* main test wakeup - shutdown */
-// int main()
-// {
-// 	general_init();
-
-// 	while (1)
-// 	{
-// 		if (button_is_pressed())
-// 		{
-// 			led_set1(63, 63, 63);
-// 			led_set2(63, 63, 63);
-
-// 		} else {
-// 			led_set1(0, 0, 0);
-// 			led_set2(0, 0, 0);
-
-// 		}
-// 		// for (double j = 0; j<100000; j++);
-// 		// for (double j = 0; j<100000; j++);
-// 	}
-// }
-
-/* main test audio and led render*/
 int main()
 {
-	cli();
-	power_init();
-	led_init();
-	adc_init();
-	audio_init();
-	sei();
+	general_init();
 
 	while (1)
 	{
-		// power_enable_ble();
-		// led_set1(0, 32, 63);
-		// // _delay_ms(5000);
-		// for (double j = 0; j<200000; j++);
+		led_set1(0, 0, 63);
+		led_set2(0, 0, 63);
+		_delay_ms(5000);
+		led_set1(0, 0, 0);
+		led_set2(0, 0, 0);
+		_delay_ms(5000);
 
-		// power_disable_ble();
-		// led_set1(63, 63, 63);
-		// for (double j = 0; j<200000; j++);
-		// // _delay_ms(5000);
-
-		audio_render_effects();
-	}	
+		if (button_is_pressed())
+		{
+			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+			cli();
+			sleep_enable();
+			sei();
+			sleep_cpu();
+			sleep_disable();
+		}
+	}
 }
+
+
+ISR(INT0_vect)
+{
+	cli();
+	// waking up...
+	// disable external interrupt here, in case the external low pulse is too long
+	GIMSK &= ~(1 << INT0);
+	
+	sei();
+}
+
+/* main test audio and led render*/
+// int main()
+// {
+// 	cli();
+// 	power_init();
+// 	led_init();
+// 	adc_init();
+// 	audio_init();
+// 	sei();
+
+// 	while (1)
+// 	{
+// 		// power_enable_ble();
+// 		// led_set1(0, 32, 63);
+// 		// // _delay_ms(5000);
+// 		// for (double j = 0; j<200000; j++);
+
+// 		// power_disable_ble();
+// 		// led_set1(63, 63, 63);
+// 		// for (double j = 0; j<200000; j++);
+// 		// // _delay_ms(5000);
+
+// 		audio_render_effects();
+// 	}	
+// }

@@ -44,6 +44,11 @@ void button_init()
 	
 	// SET_BIT(GIMSK, INT0);   //Enable External Interrupts INT0 and INT1
 	// SET_BIT(MCUCR, ISC01);	// falling edge
+	// level interrupt INT0 (low level)
+    MCUCR &= ~((1 << ISC01) | (1 << ISC00));
+
+	// enable external interrupt
+	GIMSK |= (1 << INT0);
 
 	/*
 	cli();
@@ -61,36 +66,36 @@ bool button_is_pressed()
 	return !TEST_BIT_SET(PINB, 6);
 }
 
-void on_button_interrupt()
-{
-	cli();
-	powerState = ~powerState;
+// void on_button_interrupt()
+// {
+// 	cli();
+// 	powerState = ~powerState;
 
-	// debounce
-	_delay_ms(100);
+// 	// debounce
+// 	_delay_ms(100);
 
-	if (powerState)
-	{
-		// prepare for power up
-		sleep_disable();
-		sei();
+// 	if (powerState)
+// 	{
+// 		// prepare for power up
+// 		sleep_disable();
+// 		sei();
 		
-		wakey_wakey();
+// 		wakey_wakey();
 
-	} else {
-		// prepare for sleep
-		nap_time();
+// 	} else {
+// 		// prepare for sleep
+// 		nap_time();
 
-		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-		cli();
-		sleep_enable();
-		sei();
-		sleep_cpu();
-	}
+// 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+// 		cli();
+// 		sleep_enable();
+// 		sei();
+// 		sleep_cpu();
+// 	}
 
-}
+// }
 
-ISR(INT0_vect)
-{
-	on_button_interrupt();
-}
+// ISR(INT0_vect)
+// {
+// 	on_button_interrupt();
+// }
