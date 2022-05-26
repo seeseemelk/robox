@@ -18,18 +18,10 @@ int powerState = 0;
 void wakey_wakey()
 {
 	// power up modules on mcu
-	// power_adc_enable();
-	// power_timer1_enable();
-	// power_timer0_enable();
-	// power_usi_enable();
-
-
-
-	// power_aca_enable();
-	// power_vadc_enable();
-	// power_spi_enable();
-	// power_usart0_enable();
-	// power_twi_enable();
+	power_adc_enable();
+	power_timer1_enable();
+	power_timer0_enable();
+	power_usi_enable();
 
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
@@ -48,23 +40,14 @@ void nap_time()
 {
 	power_disable_amp();
 	power_disable_ble();
-	//led_off();
+	// led_off();
 	// adc_stop();
 
 	// power down modules on mcu
-	// power_adc_disable();
-	// power_timer1_disable();
-	// power_timer0_disable();
-	// power_usi_disable();
-
-
-
-	// power_aca_disable();
-	// power_vadc_disable();
-	// power_spi_disable();
-	// power_usart0_disable();
-	// power_twi_disable();
-
+	power_adc_disable();
+	power_timer1_disable();
+	power_timer0_disable();
+	power_usi_disable();
 }
 
 void enable_on_interrupt()
