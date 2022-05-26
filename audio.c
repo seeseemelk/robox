@@ -3,7 +3,6 @@
 #include "audio.h"
 #include "battery.h"
 #include "fix_fft.h"
-#include "led.h"
 
 #include <string.h>
 
@@ -36,7 +35,7 @@ void audio_init()
 {
 }
 
-u8 amplitude_at(u8 index)//, i16 scale)
+u8 amplitude_at(u8 index)
 {
 	i16 real = s_audio_real[index];
 	i16 imag = s_audio_imag[index];

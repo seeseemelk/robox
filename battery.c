@@ -12,12 +12,12 @@ typedef enum
 	BATT_UNKNOWN
 } BatteryState;
 
-static volatile u8 s_read;
+static volatile u8 s_status;
 
-static BatteryState battery_wait_for_read()
+static BatteryState battery_get_status()
 {
-	while (s_read == BATT_UNKNOWN);
-	return s_read;
+	while (s_status == BATT_UNKNOWN);
+	return s_status;
 }
 
 void battery_init()
@@ -27,22 +27,18 @@ void battery_init()
 void battery_update()
 {
 	adc_read_battery();
-	s_read = BATT_UNKNOWN;
+	s_status = BATT_UNKNOWN;
 }
 
 bool battery_low()
 {
-	return battery_wait_for_read();
+	return battery_get_status();
 }
 
 void battery_on_read(u16 value)
 {
 	if (value < CENTI_VOLTS_TO_VALUE(420))
-		s_read = BATT_LOW;
+		s_status = BATT_LOW;
 	else
-		s_read = BATT_GOOD;
-
-//	(void) value;
-//	s_read = BATT_LOW;
-//	led_set1((value / 64) & 0x3F, 0, 0);
+		s_status = BATT_GOOD;
 }

@@ -13,16 +13,8 @@ typedef enum
 	INPUT_BATTERY_DISCARD,
 	INPUT_AUDIO_LEFT,
 	INPUT_AUDIO_LEFT_DISCARD,
-//	INPUT_AUDIO_RIGHT,
 	INPUT_NONE,
 } Input;
-
-//typedef enum
-//{
-//	DISCARD_ALL,
-//	DISCARD_ONE,
-//	DISCARD_NONE
-//} Discard;
 
 /*
  * Some defines to set or clear bits in ADCSRA.
@@ -60,12 +52,10 @@ void adc_read_battery()
 {
 	if (s_input != INPUT_BATTERY)
 	{
-//		s_discard = DISCARD_ALL;
 		s_input = INPUT_NONE;
 		ADMUX = MASK(MUX1) | MASK(MUX2) | MASK(REFS1);
 		ADCSRB |= MASK(REFS2);
 		s_input = INPUT_BATTERY_DISCARD;
-//		s_discard = DISCARD_ONE;
 	}
 }
 
@@ -73,12 +63,10 @@ void adc_read_audio_left()
 {
 	if (s_input != INPUT_AUDIO_LEFT)
 	{
-//		s_discard = DISCARD_ALL;
 		s_input = INPUT_NONE;
 		ADMUX = MASK(MUX0) | MASK(MUX1) | MASK(MUX2) | MASK(ADLAR);
 		ADCSRB &= ~MASK(REFS2);
 		s_input = INPUT_AUDIO_LEFT_DISCARD;
-//		s_discard = DISCARD_ONE;
 	}
 }
 
@@ -110,24 +98,4 @@ ISR(ADC_vect)
 	case INPUT_NONE:
 		break;
 	}
-//	if (s_discard == DISCARD_ALL)
-//	{
-//		(void) ADCH;
-//	}
-//	else if (s_discard == DISCARD_ONE)
-//	{
-//		(void) ADCH;
-//		s_discard = DISCARD_NONE;
-//	}
-//	else if (s_input == INPUT_BATTERY)
-//	{
-//		u16 voltage = ADCL;
-//		voltage |= (((u16) ADCH) << 8);
-//		battery_on_read(voltage);
-//	}
-//	else // s_input == INPUT_AUDIO_LEFT
-//	{
-//		led_set1(2, 0, 0);
-//		audio_on_read_left(ADCH);
-//	}
 }
