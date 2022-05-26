@@ -164,45 +164,101 @@ int main()
 
 	while (1)
 	{
-		led_set_full(1, 0, 0, 1, 0, 0);
+		if (powerState == 0)
+		{
+			led_set_full(1, 0, 0, 1, 0, 0);
+			// _delay_ms(100000);
+			// led_set_full(0, 0, 0, 0, 0, 0);
+			// _delay_ms(100000);
+		}
+		else if (powerState == 1)
+		{
+			led_set_full(0, 1, 0, 0, 1, 0);
+			// _delay_ms(100000);
+			// led_set_full(0, 0, 0, 0, 0, 0);
+			// _delay_ms(100000);
+		}
+		else
+		{
+			led_set_full(0, 0, 1, 0, 0, 1);
+			// _delay_ms(100000);
+			// led_set_full(0, 0, 0, 0, 0, 0);
+			// _delay_ms(100000);
+		}
+
+
+		cli();
+		if (button_is_pressed())
+		{
+			enable_on_interrupt();
+			// going to sleep
+			led_set_full(0, 0, 0, 0, 0, 0);
+
+			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+			sleep_enable();
+			// nap_time();
+			sei();
+			sleep_cpu();
+			// sleep_disable();
+			// sei();
+		}
+		sei();
 		// _delay_ms(500UL);
 		// led_set_full(0, 0, 0, 0, 0, 0);
 		// _delay_ms(500UL);
 	}
 }
 
-ISR(INT0_vect)
+// EMPTY_INTERRUPT(INT0_vect);
+ISR(INT0_vect, ISR_BLOCK)
+// ISR(PCINT_vect, ISR_BLOCK)
 {
-	// if (powerState == 1)
+	disable_on_interrupt();
+	powerState++;
+	sleep_disable();
+	if (powerState > 2) powerState = 0;
+	for (double j = 0; j<20000; j++);
+	// while (1)
 	// {
-	// waking up...
-	// disable external interrupt here, in case the external low pulse is too long
-		// cli();
-	// 	// GIMSK &= ~(1 << INT0);
-		// sleep_disable();
-	// 	// wakey_wakey();
-	// 	led_set_full(0, 0, 0, 0, 0, 0);
-		// while (1)
-		// 	led_set_full(0, 1, 0, 0, 1, 0);
-	// 	// _delay_ms(500UL);
-	// 	// led_set_full(0, 0, 0, 0, 0, 0);
-	// 	// _delay_ms(500UL);
-	// 	sei();
-		// powerState = 0;
+	// 	led_set_full(0, 0, 1, 0, 0, 1);
 	// }
-	if (powerState == 0)
-	{
-		// going to sleep
-		cli();
-		powerState = 1;
-		led_set_full(0, 0, 0, 0, 0, 0);
-		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-		sleep_enable();
-		// nap_time();
-		sei();
-		sleep_cpu();
-	}
 }
+// ISR(PCINT1_vect, ISR_ALIASOF(PCINT0_vect));
+// 	// cli();
+	// sleep_disable();
+// 	_delay_ms(5000);
+
+// 	if (powerState == 1)
+// 	{
+// 	// waking up...
+// 	// disable external interrupt here, in case the external low pulse is too long
+// 	// 	// GIMSK &= ~(1 << INT0);
+// 		// sleep_disable();
+// 	// 	// wakey_wakey();
+// 	// 	led_set_full(0, 0, 0, 0, 0, 0);
+		
+		// _delay_ms(500);
+		// led_set_full(0, 0, 0, 0, 0, 0);
+		// _delay_ms(500);
+// 		sei();
+	// 	powerState = 2;
+	// }
+// 	else if (powerState == 0)
+// 	{
+// 		// going to sleep
+// 		cli();
+// 		powerState = 1;
+// 		led_set_full(0, 0, 0, 0, 0, 0);
+// 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+// 		sleep_enable();
+// 		// nap_time();
+// 		sei();
+// 		sleep_cpu();
+// 		sleep_disable();
+// 		sei();
+// 	}
+// 	sei();
+// }
 
 /* main test audio and led render*/
 // int main()

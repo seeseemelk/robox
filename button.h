@@ -6,7 +6,10 @@
 
 #include <stdbool.h>
 
-extern bool powerState;
+extern int powerState;
+
+void disable_on_interrupt();
+void enable_on_interrupt();
 
 void button_init(void);
 bool button_is_pressed(void);

@@ -9,7 +9,7 @@
 #include <avr/power.h>
 #include <util/delay.h>
 
-bool powerState = 0;
+int powerState = 0;
 
 /*
 	wakey_wakey - function to be called,
@@ -21,6 +21,7 @@ void wakey_wakey()
 	// power_adc_enable();
 	// power_timer1_enable();
 	// power_timer0_enable();
+	// power_usi_enable();
 
 
 
@@ -54,6 +55,7 @@ void nap_time()
 	// power_adc_disable();
 	// power_timer1_disable();
 	// power_timer0_disable();
+	// power_usi_disable();
 
 
 
@@ -65,15 +67,26 @@ void nap_time()
 
 }
 
+void enable_on_interrupt()
+{
+	SET_BIT(GIMSK, INT0);   //Enable External Interrupts Pin change
+}
+
+void disable_on_interrupt()
+{
+	CLEAR_BIT(GIMSK, INT0);
+}
+
 void button_init()
 {
 	// SET_BIT(DDRB, DDB6); // configre PB6 as an input
 	DDRB &= ~(1 << 6);	// configre PB6 as an input
 	
-	SET_BIT(GIMSK, INT0);   //Enable External Interrupts INT0 and INT1
-	SET_BIT(MCUCR, ISC01);	// falling edge
+	enable_on_interrupt();
+	// SET_BIT(GIMSK, PCIE1);   //Enable External Interrupts Pin change
+	// SET_BIT(MCUCR, PCINT6);	// falling edge
 	// level interrupt INT0 (low level)
-    // MCUCR &= ~((1 << ISC01) | (1 << ISC00));
+    MCUCR &= ~((1 << ISC01) | (1 << ISC00));
 
 	// enable external interrupt
 	// GIMSK |= (1 << INT0);
