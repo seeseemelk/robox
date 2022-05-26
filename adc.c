@@ -1,6 +1,8 @@
 #include "adc.h"
 #include "defs.h"
 
+#include "led.h"
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdbool.h>
@@ -10,14 +12,31 @@ typedef enum
 	INPUT_BATTERY,
 	INPUT_AUDIO_LEFT,
 	INPUT_AUDIO_RIGHT,
+	INPUT_NONE,
 } Input;
 
-// Set to true if the sample should be discarded.
-// Used when changing the MUX.
-static bool s_discard = false;
+typedef enum
+{
+	DISCARD_ALL,
+	DISCARD_ONE,
+	DISCARD_NONE
+} Discard;
+
+/*
+ * Some defines to set or clear bits in ADCSRA.
+ * Why?
+ * The ADIF bit is set to zero when you write a one to it. This can
+ * potential cause the loss of an interrupt.
+ * I wish Atmel had put that flag in a different register...
+ */
+#define ADCSRA_CLEAR(mask) ADCSRA = (ADCSRA & ~(MASK(ADIF) | mask))
+#define ADCSRA_SET(mask) ADCSRA = (ADCSRA & ~MASK(ADIF)) | mask
 
 // Type of ADC input that is being generated.
-static Input s_input = INPUT_BATTERY;
+static Input s_input = INPUT_NONE;
+
+// Discard the next value that is read.
+static Discard s_discard = DISCARD_ALL;
 
 void adc_init()
 {
@@ -28,48 +47,62 @@ void adc_init()
 
 	// Prepare for audio/battery reading.
 	ADCSRA =
-		MASK(ADIE) | // Enable ADC interrupt
-		MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0) | // Set ADC prescaler to 128
-		MASK(ADATE) | // ADC Auto Trigger
 		MASK(ADEN) | // Enable ADC
+		MASK(ADIE) | // Enable ADC interrupt
+		MASK(ADPS1) | MASK(ADPS0) | // Set ADC prescaler to 8
+		MASK(ADATE) | // ADC Auto Trigger
 		MASK(ADSC); // Start converting
 }
 
 void adc_read_battery()
 {
-	ADMUX = MASK(MUX1) | MASK(MUX2) | MASK(REFS2) | MASK(REFS1);
-	s_discard = true;
-	s_input = INPUT_BATTERY;
+	if (s_input != INPUT_BATTERY)
+	{
+		s_discard = DISCARD_ALL;
+		ADMUX = MASK(MUX1) | MASK(MUX2) | MASK(REFS1);
+		ADCSRB |= MASK(REFS2);
+		s_input = INPUT_BATTERY;
+		s_discard = DISCARD_ONE;
+	}
 }
 
 void adc_read_audio_left()
 {
-	ADMUX = MASK(MUX0) | MASK(MUX1) | MASK(MUX2) | MASK(ADLAR);
-	s_discard = true;
-	s_input = INPUT_AUDIO_LEFT;
+	if (s_input != INPUT_AUDIO_LEFT)
+	{
+		s_discard = DISCARD_ALL;
+		ADMUX = MASK(MUX0) | MASK(MUX1) | MASK(MUX2) | MASK(ADLAR);
+		ADCSRB &= ~MASK(REFS2);
+		s_input = INPUT_AUDIO_LEFT;
+		s_discard = DISCARD_ONE;
+	}
 }
 
 void adc_stop()
 {
-	CLEAR_BIT(ADCSRA, ADEN);
+	ADCSRA_CLEAR(ADEN);
 }
 
 ISR(ADC_vect)
 {
-	if (s_discard)
+	if (s_discard == DISCARD_ALL)
 	{
-		// Discard one sample
 		(void) ADCH;
-		s_discard = false;
+	}
+	else if (s_discard == DISCARD_ONE)
+	{
+		(void) ADCH;
+		s_discard = DISCARD_NONE;
 	}
 	else if (s_input == INPUT_BATTERY)
 	{
 		u16 voltage = ADCL;
-		voltage |= ((u16) ADCH << 8);
-		battery_on_read(ADCH);
+		voltage |= (((u16) ADCH) << 8);
+		battery_on_read(voltage);
 	}
 	else // s_input == INPUT_AUDIO_LEFT
 	{
+//		led_set1(2, 0, 0);
 		audio_on_read_left(ADCH);
 	}
 }

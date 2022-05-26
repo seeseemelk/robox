@@ -1,15 +1,22 @@
 #include "battery.h"
 
 #include "adc.h"
+#include "led.h"
 
-static u16 s_read = 0;
-static bool s_low = false;
+#define WAIT_READ 0xFFFFU
 
-static u16 battery_read()
+typedef enum
 {
-	s_read = 0;
-	adc_read_battery();
-	while (s_read == 0) {}
+	BATT_GOOD,
+	BATT_LOW,
+	BATT_UNKNOWN
+} BatteryState;
+
+static volatile u8 s_read;
+
+static BatteryState battery_wait_for_read()
+{
+	while (s_read == BATT_UNKNOWN);
 	return s_read;
 }
 
@@ -20,16 +27,22 @@ void battery_init()
 void battery_update()
 {
 	adc_read_battery();
-	u16 battery = battery_read();
-	s_low = battery < CENTI_VOLTS_TO_VALUE(210);
+	s_read = BATT_UNKNOWN;
 }
 
 bool battery_low()
 {
-	return s_low;
+	return battery_wait_for_read();
 }
 
 void battery_on_read(u16 value)
 {
-	s_read = value;
+	if (value < CENTI_VOLTS_TO_VALUE(420))
+		s_read = BATT_LOW;
+	else
+		s_read = BATT_GOOD;
+
+//	(void) value;
+//	s_read = BATT_LOW;
+//	led_set1((value / 64) & 0x3F, 0, 0);
 }

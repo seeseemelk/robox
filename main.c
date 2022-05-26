@@ -13,7 +13,7 @@
 	general_init - general init of all functions needed
 	To be called when the mcu starts.
 */
-void general_init()
+static void general_init()
 {
 	cli();
 	led_init();
@@ -33,7 +33,7 @@ int main()
 
 	while (1)
 	{
-		battery_update();
+//		battery_update();
 		audio_render_effects();
 	}	
 }
