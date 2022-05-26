@@ -190,13 +190,14 @@ int main()
 		cli();
 		if (button_is_pressed())
 		{
+			for (double j = 0; j<20000; j++);	// debounce
 			enable_on_interrupt();
 			// going to sleep
 			led_set_full(0, 0, 0, 0, 0, 0);
 
 			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 			sleep_enable();
-			// nap_time();
+			nap_time();
 			sei();
 			sleep_cpu();
 			// sleep_disable();
@@ -216,8 +217,9 @@ ISR(INT0_vect, ISR_BLOCK)
 	disable_on_interrupt();
 	powerState++;
 	sleep_disable();
+	wakey_wakey();
 	if (powerState > 2) powerState = 0;
-	for (double j = 0; j<20000; j++);
+	for (double j = 0; j<20000; j++);	// debounce
 	// while (1)
 	// {
 	// 	led_set_full(0, 0, 1, 0, 0, 1);
