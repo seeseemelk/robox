@@ -21,16 +21,16 @@ const i8 s_breath[] PROGMEM =
 	12, 16, 20, 24, 28, 32, 36, 40, 48, 52, 58, 63,
 };
 
-//static i8 breathing_at(i8 point)
-//{
-//	i8 index = point % sizeof(s_breath);
-//	if (((point / sizeof(s_breath)) & 1) == 0)
-//		return pgm_read_byte_near(s_breath + index);
-//	else
-//		return pgm_read_byte_near(s_breath + sizeof(s_breath) - index - 1);
-//}
-//static u16 s_breathing_index = 0;
-//static u16 s_skip = 0;
+static i8 breathing_at(i8 point)
+{
+	i8 index = point % sizeof(s_breath);
+	if (((point / sizeof(s_breath)) & 1) == 0)
+		return pgm_read_byte_near(s_breath + index);
+	else
+		return pgm_read_byte_near(s_breath + sizeof(s_breath) - index - 1);
+}
+static u16 s_breathing_index = 0;
+static u16 s_skip = 0;
 
 void audio_init()
 {
@@ -48,17 +48,17 @@ u8 amplitude_at(u8 index)//, i16 scale)
 // static u8 s_status = 0;
 void audio_render_effects()
 {
-//	if (battery_low())
-//	{
-//		if (s_skip == 0)
-//		{
-//			led_set1(breathing_at(s_breathing_index), 0, 0);
-//			led_set2(breathing_at(s_breathing_index + sizeof(s_breath)), 0, 0);
-//			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
-//		}
-//		s_skip = (s_skip + 1) % 16;
-//	}
-//	else
+	if (battery_low())
+	{
+		if (s_skip == 0)
+		{
+			led_set1(breathing_at(s_breathing_index), 0, 0);
+			led_set2(breathing_at(s_breathing_index + sizeof(s_breath)), 0, 0);
+			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
+		}
+		s_skip = (s_skip + 1) % 16;
+	}
+	else
 	{
 		adc_read_audio_left();
 		s_audio_write_index = 0;

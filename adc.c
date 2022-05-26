@@ -10,17 +10,19 @@
 typedef enum
 {
 	INPUT_BATTERY,
+	INPUT_BATTERY_DISCARD,
 	INPUT_AUDIO_LEFT,
-	INPUT_AUDIO_RIGHT,
+	INPUT_AUDIO_LEFT_DISCARD,
+//	INPUT_AUDIO_RIGHT,
 	INPUT_NONE,
 } Input;
 
-typedef enum
-{
-	DISCARD_ALL,
-	DISCARD_ONE,
-	DISCARD_NONE
-} Discard;
+//typedef enum
+//{
+//	DISCARD_ALL,
+//	DISCARD_ONE,
+//	DISCARD_NONE
+//} Discard;
 
 /*
  * Some defines to set or clear bits in ADCSRA.
@@ -36,7 +38,7 @@ typedef enum
 static Input s_input = INPUT_NONE;
 
 // Discard the next value that is read.
-static Discard s_discard = DISCARD_ALL;
+//static Discard s_discard = DISCARD_ALL;
 
 void adc_init()
 {
@@ -58,11 +60,12 @@ void adc_read_battery()
 {
 	if (s_input != INPUT_BATTERY)
 	{
-		s_discard = DISCARD_ALL;
+//		s_discard = DISCARD_ALL;
+		s_input = INPUT_NONE;
 		ADMUX = MASK(MUX1) | MASK(MUX2) | MASK(REFS1);
 		ADCSRB |= MASK(REFS2);
-		s_input = INPUT_BATTERY;
-		s_discard = DISCARD_ONE;
+		s_input = INPUT_BATTERY_DISCARD;
+//		s_discard = DISCARD_ONE;
 	}
 }
 
@@ -70,11 +73,12 @@ void adc_read_audio_left()
 {
 	if (s_input != INPUT_AUDIO_LEFT)
 	{
-		s_discard = DISCARD_ALL;
+//		s_discard = DISCARD_ALL;
+		s_input = INPUT_NONE;
 		ADMUX = MASK(MUX0) | MASK(MUX1) | MASK(MUX2) | MASK(ADLAR);
 		ADCSRB &= ~MASK(REFS2);
-		s_input = INPUT_AUDIO_LEFT;
-		s_discard = DISCARD_ONE;
+		s_input = INPUT_AUDIO_LEFT_DISCARD;
+//		s_discard = DISCARD_ONE;
 	}
 }
 
@@ -85,24 +89,45 @@ void adc_stop()
 
 ISR(ADC_vect)
 {
-	if (s_discard == DISCARD_ALL)
+	switch (s_input)
 	{
+	case INPUT_BATTERY_DISCARD:
 		(void) ADCH;
-	}
-	else if (s_discard == DISCARD_ONE)
-	{
+		s_input = INPUT_BATTERY;
+		break;
+	case INPUT_AUDIO_LEFT_DISCARD:
 		(void) ADCH;
-		s_discard = DISCARD_NONE;
-	}
-	else if (s_input == INPUT_BATTERY)
-	{
+		s_input = INPUT_AUDIO_LEFT;
+		break;
+	case INPUT_BATTERY:
 		u16 voltage = ADCL;
 		voltage |= (((u16) ADCH) << 8);
 		battery_on_read(voltage);
-	}
-	else // s_input == INPUT_AUDIO_LEFT
-	{
-//		led_set1(2, 0, 0);
+		break;
+	case INPUT_AUDIO_LEFT:
 		audio_on_read_left(ADCH);
+		break;
+	case INPUT_NONE:
+		break;
 	}
+//	if (s_discard == DISCARD_ALL)
+//	{
+//		(void) ADCH;
+//	}
+//	else if (s_discard == DISCARD_ONE)
+//	{
+//		(void) ADCH;
+//		s_discard = DISCARD_NONE;
+//	}
+//	else if (s_input == INPUT_BATTERY)
+//	{
+//		u16 voltage = ADCL;
+//		voltage |= (((u16) ADCH) << 8);
+//		battery_on_read(voltage);
+//	}
+//	else // s_input == INPUT_AUDIO_LEFT
+//	{
+//		led_set1(2, 0, 0);
+//		audio_on_read_left(ADCH);
+//	}
 }

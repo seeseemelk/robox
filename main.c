@@ -33,7 +33,7 @@ int main()
 
 	while (1)
 	{
-//		battery_update();
+		battery_update();
 		audio_render_effects();
 	}	
 }
