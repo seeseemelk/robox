@@ -3,6 +3,8 @@
 #include "config.h"
 #include "defs.h"
 
+#include <stdbool.h>
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -62,6 +64,27 @@ void led_init()
 static u8 convertBrightness(u8 value)
 {
 	return (value & 0x3F);
+}
+
+void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)
+{
+	uint8_t mask = LED_MASK_INIT;
+	
+	if (r1)
+		ENABLE_LED(mask, LED1_R);
+	if (g1)
+		ENABLE_LED(mask, LED1_G);
+	if (b1)
+		ENABLE_LED(mask, LED1_B);
+
+	if (r2)
+		ENABLE_LED(mask, LED2_R);
+	if (g2)
+		ENABLE_LED(mask, LED2_G);
+	if (b2)
+		ENABLE_LED(mask, LED2_B);
+
+	PORTA = (PORTA & ~PIN_MASKS) | mask;
 }
 
 void led_set1(u8 r, u8 g, u8 b)

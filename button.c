@@ -6,6 +6,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/power.h>
 #include <util/delay.h>
 
 bool powerState = 0;
@@ -16,6 +17,19 @@ bool powerState = 0;
 */
 void wakey_wakey()
 {
+	// power up modules on mcu
+	// power_adc_enable();
+	// power_timer1_enable();
+	// power_timer0_enable();
+
+
+
+	// power_aca_enable();
+	// power_vadc_enable();
+	// power_spi_enable();
+	// power_usart0_enable();
+	// power_twi_enable();
+
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
 	power_enable_amp();
@@ -34,7 +48,21 @@ void nap_time()
 	power_disable_amp();
 	power_disable_ble();
 	//led_off();
-	adc_stop();
+	// adc_stop();
+
+	// power down modules on mcu
+	// power_adc_disable();
+	// power_timer1_disable();
+	// power_timer0_disable();
+
+
+
+	// power_aca_disable();
+	// power_vadc_disable();
+	// power_spi_disable();
+	// power_usart0_disable();
+	// power_twi_disable();
+
 }
 
 void button_init()
@@ -42,13 +70,13 @@ void button_init()
 	// SET_BIT(DDRB, DDB6); // configre PB6 as an input
 	DDRB &= ~(1 << 6);	// configre PB6 as an input
 	
-	// SET_BIT(GIMSK, INT0);   //Enable External Interrupts INT0 and INT1
-	// SET_BIT(MCUCR, ISC01);	// falling edge
+	SET_BIT(GIMSK, INT0);   //Enable External Interrupts INT0 and INT1
+	SET_BIT(MCUCR, ISC01);	// falling edge
 	// level interrupt INT0 (low level)
-    MCUCR &= ~((1 << ISC01) | (1 << ISC00));
+    // MCUCR &= ~((1 << ISC01) | (1 << ISC00));
 
 	// enable external interrupt
-	GIMSK |= (1 << INT0);
+	// GIMSK |= (1 << INT0);
 
 	/*
 	cli();

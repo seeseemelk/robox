@@ -12,4 +12,7 @@ void button_init(void);
 bool button_is_pressed(void);
 void on_button_interrupt();
 
+void wakey_wakey();
+void nap_time();
+
 #endif /* _PINS_H_ */

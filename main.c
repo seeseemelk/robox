@@ -164,34 +164,44 @@ int main()
 
 	while (1)
 	{
-		led_set1(0, 0, 63);
-		led_set2(0, 0, 63);
-		_delay_ms(5000);
-		led_set1(0, 0, 0);
-		led_set2(0, 0, 0);
-		_delay_ms(5000);
-
-		if (button_is_pressed())
-		{
-			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-			cli();
-			sleep_enable();
-			sei();
-			sleep_cpu();
-			sleep_disable();
-		}
+		led_set_full(1, 0, 0, 1, 0, 0);
+		// _delay_ms(500UL);
+		// led_set_full(0, 0, 0, 0, 0, 0);
+		// _delay_ms(500UL);
 	}
 }
 
-
 ISR(INT0_vect)
 {
-	cli();
+	// if (powerState == 1)
+	// {
 	// waking up...
 	// disable external interrupt here, in case the external low pulse is too long
-	GIMSK &= ~(1 << INT0);
-	
-	sei();
+		// cli();
+	// 	// GIMSK &= ~(1 << INT0);
+		// sleep_disable();
+	// 	// wakey_wakey();
+	// 	led_set_full(0, 0, 0, 0, 0, 0);
+		// while (1)
+		// 	led_set_full(0, 1, 0, 0, 1, 0);
+	// 	// _delay_ms(500UL);
+	// 	// led_set_full(0, 0, 0, 0, 0, 0);
+	// 	// _delay_ms(500UL);
+	// 	sei();
+		// powerState = 0;
+	// }
+	if (powerState == 0)
+	{
+		// going to sleep
+		cli();
+		powerState = 1;
+		led_set_full(0, 0, 0, 0, 0, 0);
+		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+		sleep_enable();
+		// nap_time();
+		sei();
+		sleep_cpu();
+	}
 }
 
 /* main test audio and led render*/
