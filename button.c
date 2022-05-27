@@ -4,14 +4,13 @@
 #include "config.h"
 #include "defs.h"
 #include "power.h"
+#include "led.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <util/delay.h>
-
-static bool s_powerState = 0;
 
 /*
 	wakey_wakey - function to be called,
@@ -36,12 +35,43 @@ void wakey_wakey()
 void nap_time()
 {
 	power_disable_ble();
+	led_set_full(0, 0, 0, 0, 0, 0);
 
 	// power down modules on mcu
 	power_adc_disable();
 	power_timer1_disable();
 	power_timer0_disable();
 	power_usi_disable();
+}
+
+void check_if_tired()
+{
+	cli();
+	if (button_is_pressed())
+	{
+		for (double j = 0; j<20000; j++);	// debounce
+		enable_on_interrupt();
+		// going to sleep
+
+		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+		sleep_enable();
+		nap_time();
+		sei();
+		sleep_cpu();
+	}
+	sei();
+}
+
+ISR(INT0_vect, ISR_BLOCK)
+{
+
+	disable_on_interrupt();
+	// powerState++;
+	sleep_disable();
+	wakey_wakey();
+	// if (powerState > 2) powerState = 0;
+	for (double j = 0; j<20000; j++);	// debounce
+
 }
 
 void enable_on_interrupt()
@@ -76,21 +106,21 @@ bool button_is_pressed()
 #endif
 }
 
-void on_button_interrupt()
-{
-	cli();
-	s_powerState = !s_powerState;
+// void on_button_interrupt()
+// {
+// 	cli();
+// 	s_powerState = !s_powerState;
 
-// 	// debounce
-// 	_delay_ms(100);
+// // 	// debounce
+// // 	_delay_ms(100);
 
-	if (s_powerState)
-	{
-		// prepare for power up
-		sleep_disable();
-		sei();
-	}
-}
+// 	if (s_powerState)
+// 	{
+// 		// prepare for power up
+// 		sleep_disable();
+// 		sei();
+// 	}
+// }
 		
 // 		wakey_wakey();
 
@@ -107,7 +137,7 @@ void on_button_interrupt()
 
 // }
 
-ISR(INT0_vect)
-{
- 	on_button_interrupt();
-}
+// ISR(INT0_vect)
+// {
+//  	on_button_interrupt();
+// }

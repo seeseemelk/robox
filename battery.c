@@ -34,7 +34,7 @@ void battery_on_read(u16 value)
 	{
 		if (value > CENTI_VOLTS_TO_VALUE(400))
 			s_status = BATT_FULL;
-		else if (power_is_psu_charging())
+		else
 			s_status = BATT_CHARGING;
 	}
 	else

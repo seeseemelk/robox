@@ -6,7 +6,7 @@
 
 #include <stdbool.h>
 
-extern int powerState;
+// extern int powerState;
 
 void disable_on_interrupt();
 void enable_on_interrupt();
@@ -17,5 +17,6 @@ void on_button_interrupt();
 
 void wakey_wakey();
 void nap_time();
+void check_if_tired();
 
 #endif /* _PINS_H_ */

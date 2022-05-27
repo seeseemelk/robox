@@ -16,20 +16,12 @@ void power_init()
 
 bool power_is_psu_charging()
 {
-#ifdef INVERT_IO
 	return TEST_BIT_CLEAR(PINB, PSU_CHG);
-#else
-	return TEST_BIT_SET(PINB, PSU_CHG);
-#endif
 }
 
 bool power_is_psu_standby()
 {
-#ifdef INVERT_IO
 	return TEST_BIT_CLEAR(PINB, PSU_STBY);
-#else
-	return TEST_BIT_SET(PINB, PSU_STBY);
-#endif
 }
 
 void power_enable_ble()

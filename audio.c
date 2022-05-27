@@ -118,7 +118,7 @@ void audio_render_effects()
 		break;
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
-		u8 amplitude_at_1 = 0;
+		// u8 amplitude_at_1 = 0;
 
 		adc_read_audio_left();
 		s_audio_write_index = 0;
@@ -136,7 +136,7 @@ void audio_render_effects()
 		else
 		{
 
-			amplitude_at_1 = amplitude_at(1);
+			u8 amplitude_at_1 = amplitude_at(1);
 
 			if ((amplitude_at_1 > max_current) && (max_current != 0))
 				max_current = amplitude_at_1;
