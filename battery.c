@@ -7,7 +7,7 @@
 
 #define WAIT_READ 0xFFFFU
 
-static volatile u8 s_status;
+static volatile u16 s_value;
 static bool s_charging;
 
 void battery_init()
@@ -16,34 +16,31 @@ void battery_init()
 
 void battery_update()
 {
-	s_charging = power_is_psu_charging() || power_is_psu_standby();
+	s_charging = power_is_psu_charging();
 	adc_read_battery();
-	s_status = BATT_UNKNOWN;
+	s_value = WAIT_READ;
 }
 
 BatteryState battery_status()
 {
-	while (s_status == BATT_UNKNOWN);
-	if (s_status == BATT_CRIT)
+	while (s_value == WAIT_READ);
+
+	if (s_value < CENTI_VOLTS_TO_VALUE(320))
 	{
 		enter_deepsleep();
+		return BATT_CRIT;
 	}
-	return s_status;
+	else if (s_charging && s_value > CENTI_VOLTS_TO_VALUE(400))
+		return BATT_FULL;
+	else if (s_charging)
+		return BATT_CHARGING;
+	else if (s_value < CENTI_VOLTS_TO_VALUE(350))
+		return BATT_LOW;
+	else
+		return BATT_GOOD;
 }
 
 void battery_on_read(u16 value)
 {
-	if (value < CENTI_VOLTS_TO_VALUE(320))
-		s_status = BATT_CRIT;
-	else if (value < CENTI_VOLTS_TO_VALUE(350))
-		s_status = BATT_LOW;
-	else if (s_charging)
-	{
-		if (value > CENTI_VOLTS_TO_VALUE(400))
-			s_status = BATT_FULL;
-		else
-			s_status = BATT_CHARGING;
-	}
-	else
-		s_status = BATT_GOOD;
+	s_value = value;
 }

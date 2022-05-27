@@ -77,7 +77,7 @@ void adc_stop()
 
 ISR(ADC_vect)
 {
-	u16 voltage = ADCL;
+	u16 voltage;
 	switch (s_input)
 	{
 	case INPUT_BATTERY_DISCARD:
@@ -89,6 +89,7 @@ ISR(ADC_vect)
 		s_input = INPUT_AUDIO_LEFT;
 		break;
 	case INPUT_BATTERY:
+		voltage = ADCL;
 		voltage |= (((u16) ADCH) << 8);
 		battery_on_read(voltage);
 		break;

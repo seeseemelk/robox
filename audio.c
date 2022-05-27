@@ -90,7 +90,7 @@ void audio_render_effects()
 			led_set1(breathingA, 0, 0);
 			led_set2(breathingB, 0, 0);
 		}
-		s_skip = (s_skip + 1) % 16;
+		s_skip = (s_skip + 1) % 1024;
 		break;
 	case BATT_CHARGING:
 		if (s_skip == 0)
@@ -102,7 +102,7 @@ void audio_render_effects()
 			led_set1(breathingA, breathingA, 0);
 			led_set2(breathingB, breathingB, 0);
 		}
-		s_skip = (s_skip + 1) % 16;
+		s_skip = (s_skip + 1) % 1024;
 		break;
 	case BATT_FULL:
 		if (s_skip == 0)
@@ -114,10 +114,11 @@ void audio_render_effects()
 			led_set1(0, breathingA, 0);
 			led_set2(0, breathingB, 0);
 		}
-		s_skip = (s_skip + 1) % 16;
+		s_skip = (s_skip + 1) % 1024;
 		break;
 	case BATT_GOOD:
-	default:
+	case BATT_CRIT:
+	case BATT_UNKNOWN:
 		// u8 amplitude_at_1 = 0;
 
 		adc_read_audio_left();

@@ -6,8 +6,8 @@
 #include <avr/io.h>
 
 #define SHDWN_BLE PORTA3
-#define PSU_CHG PORTB1
-#define PSU_STBY PORTB3
+#define PSU_CHG PINB1
+#define PSU_STBY PINB3
 
 void power_init()
 {
