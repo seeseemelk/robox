@@ -27,13 +27,6 @@
 #define ENABLE_LED(var, bit) SET_BIT(var, bit)
 #endif
 
-typedef struct
-{
-	u8 r;
-	u8 g;
-	u8 b;
-} Color;
-
 static Color s_led1;
 static Color s_led2;
 static Color _s_led1;
@@ -69,7 +62,7 @@ static u8 convertBrightness(u8 value)
 void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)
 {
 	uint8_t mask = LED_MASK_INIT;
-	
+
 	if (r1)
 		ENABLE_LED(mask, LED1_R);
 	if (g1)

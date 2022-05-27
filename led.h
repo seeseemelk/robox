@@ -4,6 +4,13 @@
 #include "defs.h"
 #include <stdbool.h>
 
+typedef struct
+{
+	u8 r;
+	u8 g;
+	u8 b;
+} Color;
+
 void led_init();
 void led_set1(u8 r, u8 g, u8 b);
 void led_set2(u8 r, u8 g, u8 b);

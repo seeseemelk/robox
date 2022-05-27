@@ -56,21 +56,20 @@ ISR(PCINT0_vect) {
 	general_init - general init of all functions needed
 	To be called when the mcu starts.
 */
+
+
 void general_init()
 {
 	cli();
 	led_init();
 	power_init();
 	adc_init();
-	power_disable_amp();
 	button_init();
 	audio_init();
+	power_enable_ble();
+	power_enable_amp();
 	sei();
 }
-
-
-
-
 
 /*
 	music - main routine that powers all functionality.
@@ -157,133 +156,86 @@ void music()
 // 	}
 // }
 
+/*********************************/
+
 /* main test wakeup - shutdown */
-int main()
-{
-	general_init();
-
-	while (1)
-	{
-		if (powerState == 0)
-		{
-			led_set_full(1, 0, 0, 1, 0, 0);
-			// _delay_ms(100000);
-			// led_set_full(0, 0, 0, 0, 0, 0);
-			// _delay_ms(100000);
-		}
-		else if (powerState == 1)
-		{
-			led_set_full(0, 1, 0, 0, 1, 0);
-			// _delay_ms(100000);
-			// led_set_full(0, 0, 0, 0, 0, 0);
-			// _delay_ms(100000);
-		}
-		else
-		{
-			led_set_full(0, 0, 1, 0, 0, 1);
-			// _delay_ms(100000);
-			// led_set_full(0, 0, 0, 0, 0, 0);
-			// _delay_ms(100000);
-		}
-
-
-		cli();
-		if (button_is_pressed())
-		{
-			for (double j = 0; j<20000; j++);	// debounce
-			enable_on_interrupt();
-			// going to sleep
-			led_set_full(0, 0, 0, 0, 0, 0);
-
-			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-			sleep_enable();
-			nap_time();
-			sei();
-			sleep_cpu();
-			// sleep_disable();
-			// sei();
-		}
-		sei();
-		// _delay_ms(500UL);
-		// led_set_full(0, 0, 0, 0, 0, 0);
-		// _delay_ms(500UL);
-	}
-}
-
-// EMPTY_INTERRUPT(INT0_vect);
-ISR(INT0_vect, ISR_BLOCK)
-// ISR(PCINT_vect, ISR_BLOCK)
-{
-	disable_on_interrupt();
-	powerState++;
-	sleep_disable();
-	wakey_wakey();
-	if (powerState > 2) powerState = 0;
-	for (double j = 0; j<20000; j++);	// debounce
-	// while (1)
-	// {
-	// 	led_set_full(0, 0, 1, 0, 0, 1);
-	// }
-}
-// ISR(PCINT1_vect, ISR_ALIASOF(PCINT0_vect));
-// 	// cli();
-	// sleep_disable();
-// 	_delay_ms(5000);
-
-// 	if (powerState == 1)
-// 	{
-// 	// waking up...
-// 	// disable external interrupt here, in case the external low pulse is too long
-// 	// 	// GIMSK &= ~(1 << INT0);
-// 		// sleep_disable();
-// 	// 	// wakey_wakey();
-// 	// 	led_set_full(0, 0, 0, 0, 0, 0);
-		
-		// _delay_ms(500);
-		// led_set_full(0, 0, 0, 0, 0, 0);
-		// _delay_ms(500);
-// 		sei();
-	// 	powerState = 2;
-	// }
-// 	else if (powerState == 0)
-// 	{
-// 		// going to sleep
-// 		cli();
-// 		powerState = 1;
-// 		led_set_full(0, 0, 0, 0, 0, 0);
-// 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-// 		sleep_enable();
-// 		// nap_time();
-// 		sei();
-// 		sleep_cpu();
-// 		sleep_disable();
-// 		sei();
-// 	}
-// 	sei();
-// }
-
-/* main test audio and led render*/
 // int main()
 // {
-// 	cli();
-// 	power_init();
-// 	led_init();
-// 	adc_init();
-// 	audio_init();
-// 	sei();
+// 	general_init();
 
 // 	while (1)
 // 	{
-// 		// power_enable_ble();
-// 		// led_set1(0, 32, 63);
-// 		// // _delay_ms(5000);
-// 		// for (double j = 0; j<200000; j++);
+// 		if (powerState == 0)
+// 		{
+// 			led_set_full(1, 0, 0, 1, 0, 0);
+// 		}
+// 		else if (powerState == 1)
+// 		{
+// 			led_set_full(0, 1, 0, 0, 1, 0);
+// 		}
+// 		else
+// 		{
+// 			led_set_full(0, 0, 1, 0, 0, 1);
+// 		}
 
-// 		// power_disable_ble();
-// 		// led_set1(63, 63, 63);
-// 		// for (double j = 0; j<200000; j++);
-// 		// // _delay_ms(5000);
 
-// 		audio_render_effects();
-// 	}	
+// 		cli();
+// 		if (button_is_pressed())
+// 		{
+// 			for (double j = 0; j<20000; j++);	// debounce
+// 			enable_on_interrupt();
+// 			// going to sleep
+// 			led_set_full(0, 0, 0, 0, 0, 0);
+
+// 			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+// 			sleep_enable();
+// 			nap_time();
+// 			sei();
+// 			sleep_cpu();
+// 		}
+// 		sei();
+// 	}
 // }
+
+// ISR(INT0_vect, ISR_BLOCK)
+// {
+// 	disable_on_interrupt();
+// 	powerState++;
+// 	sleep_disable();
+// 	wakey_wakey();
+// 	if (powerState > 2) powerState = 0;
+// 	for (double j = 0; j<20000; j++);	// debounce
+// }
+/*********************************/
+
+/* main test audio and led render*/
+int main()
+{
+	// general_init();
+	cli();
+	power_init();
+	led_init();
+	adc_init();
+	audio_init();
+	sei();
+	power_enable_ble();
+
+	while (1)
+	{
+		// led_set_full(1, 1, 1, 1, 1, 1);
+		// led_set1(0, 32, 63);
+		// _delay_ms(500);
+		// led_set_full(0, 0, 0, 0, 0, 0);
+		// led_set1(0, 32, 63);
+		// _delay_ms(500);
+		// for (double j = 0; j<200000; j++);
+
+		// power_disable_ble();
+		// led_set1(63, 63, 63);
+		// for (double j = 0; j<200000; j++);
+		// // _delay_ms(5000);
+		// _delay_ms(100);
+		audio_render_effects();
+		// __asm__ __volatile__ ("nop");
+	}	
+}
