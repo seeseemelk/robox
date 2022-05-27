@@ -19,10 +19,15 @@
 void wakey_wakey()
 {
 	// power up modules on mcu
+	power_all_enable();	
 	power_adc_enable();
 	power_timer1_enable();
 	power_timer0_enable();
 	power_usi_enable();
+
+	// Digital Input (buffer) Disable Registers
+	// DIDR0 &= ~(MASK(ADC6D) | MASK(ADC5D) | MASK(ADC4D) | MASK(ADC3D) | MASK(AREFD) | MASK(ADC2D) | MASK(ADC1D) | MASK(ADC0D));
+	// DIDR1 &= ~(MASK(ADC10D) | MASK(ADC9D) | MASK(ADC8D) | MASK(ADC7D));
 
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
@@ -42,6 +47,14 @@ void nap_time()
 	power_timer1_disable();
 	power_timer0_disable();
 	power_usi_disable();
+	power_all_disable();
+	// Digital Input (buffer) Disable Registers
+	DIDR0 |= (MASK(ADC6D) | MASK(ADC5D) | MASK(ADC4D) | MASK(ADC3D) | MASK(AREFD) | MASK(ADC2D) | MASK(ADC1D) | MASK(ADC0D));
+	DIDR1 |= (MASK(ADC10D) | MASK(ADC9D) | MASK(ADC8D) | MASK(ADC7D));
+
+	// Digital Input (buffer) Disable Registers
+	// DIDR0 |= (MASK(ADC6D) | MASK(ADC5D) | MASK(ADC4D) | MASK(ADC3D) | MASK(AREFD) | MASK(ADC2D) | MASK(ADC1D) | MASK(ADC0D));
+	// DIDR1 |= (MASK(ADC10D) | MASK(ADC9D) | MASK(ADC8D) | MASK(ADC7D));
 }
 
 void enter_deepsleep()
