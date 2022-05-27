@@ -1,6 +1,7 @@
 #include "battery.h"
 
 #include "adc.h"
+#include "button.h"
 #include "led.h"
 #include "power.h"
 
@@ -23,12 +24,18 @@ void battery_update()
 BatteryState battery_status()
 {
 	while (s_status == BATT_UNKNOWN);
+	if (s_status == BATT_CRIT)
+	{
+		enter_deepsleep();
+	}
 	return s_status;
 }
 
 void battery_on_read(u16 value)
 {
-	if (value < CENTI_VOLTS_TO_VALUE(350))
+	if (value < CENTI_VOLTS_TO_VALUE(320))
+		s_status = BATT_CRIT;
+	else if (value < CENTI_VOLTS_TO_VALUE(350))
 		s_status = BATT_LOW;
 	else if (s_charging)
 	{

@@ -44,20 +44,25 @@ void nap_time()
 	power_usi_disable();
 }
 
+void enter_deepsleep()
+{
+	cli();
+	enable_on_interrupt();
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	sleep_enable();
+	nap_time();
+	sei();
+	sleep_cpu();
+}
+
 void check_if_tired()
 {
 	cli();
 	if (button_is_pressed())
 	{
 		for (double j = 0; j<20000; j++);	// debounce
-		enable_on_interrupt();
 		// going to sleep
-
-		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-		sleep_enable();
-		nap_time();
-		sei();
-		sleep_cpu();
+		enter_deepsleep();
 	}
 	sei();
 }

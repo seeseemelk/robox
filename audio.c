@@ -117,7 +117,7 @@ void audio_render_effects()
 		s_skip = (s_skip + 1) % 16;
 		break;
 	case BATT_GOOD:
-	case BATT_UNKNOWN:
+	default:
 		// u8 amplitude_at_1 = 0;
 
 		adc_read_audio_left();

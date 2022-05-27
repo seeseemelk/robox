@@ -9,6 +9,7 @@ typedef enum
 	BATT_CHARGING,
 	BATT_FULL,
 	BATT_LOW,
+	BATT_CRIT,
 	BATT_UNKNOWN
 } BatteryState;
 
