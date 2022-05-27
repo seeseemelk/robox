@@ -3,6 +3,7 @@
 #include "audio.h"
 #include "battery.h"
 #include "fix_fft.h"
+#include "led.h"
 
 #include <string.h>
 
@@ -47,18 +48,46 @@ u8 amplitude_at(u8 index)
 // static u8 s_status = 0;
 void audio_render_effects()
 {
-	if (battery_low())
+	switch (battery_status())
 	{
+	case BATT_LOW:
 		if (s_skip == 0)
 		{
-			led_set1(breathing_at(s_breathing_index), 0, 0);
-			led_set2(breathing_at(s_breathing_index + sizeof(s_breath)), 0, 0);
+			i8 breathingA = breathing_at(s_breathing_index);
+			i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
 			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
+
+			led_set1(breathingA, 0, 0);
+			led_set2(breathingB, 0, 0);
 		}
 		s_skip = (s_skip + 1) % 16;
-	}
-	else
-	{
+		break;
+	case BATT_CHARGING:
+		if (s_skip == 0)
+		{
+			i8 breathingA = breathing_at(s_breathing_index);
+			i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
+			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
+
+			led_set1(breathingA, breathingA, 0);
+			led_set2(breathingB, breathingB, 0);
+		}
+		s_skip = (s_skip + 1) % 16;
+		break;
+	case BATT_FULL:
+		if (s_skip == 0)
+		{
+			i8 breathingA = breathing_at(s_breathing_index);
+			i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
+			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
+
+			led_set1(0, breathingA, 0);
+			led_set2(0, breathingB, 0);
+		}
+		s_skip = (s_skip + 1) % 16;
+		break;
+	case BATT_GOOD:
+	case BATT_UNKNOWN:
 		adc_read_audio_left();
 		s_audio_write_index = 0;
 		memset(s_audio_imag, 0, ARRAY_SIZE);

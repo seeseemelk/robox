@@ -1,14 +1,17 @@
 #include "button.h"
+
 #include "adc.h"
-#include "power.h"
+#include "config.h"
 #include "defs.h"
+#include "power.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
 
-bool powerState = 0;
+
+static bool s_powerState = 0;
 
 /*
 	wakey_wakey - function to be called,
@@ -18,7 +21,6 @@ void wakey_wakey()
 {
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
-	power_enable_amp();
 	/*
 	sei();
     ADCSRA |= _BV(ADEN);                    // ADC on
@@ -31,7 +33,6 @@ void wakey_wakey()
 */
 void nap_time()
 {
-	power_disable_amp();
 	power_disable_ble();
 	//led_off();
 	adc_stop();
@@ -58,18 +59,22 @@ void button_init()
 */
 bool button_is_pressed()
 {
-	return !TEST_BIT_SET(PINB, 6);
+#ifdef INVERT_IO
+	return TEST_BIT_SET(PINB, 6);
+#else
+	return TEST_BIT_CLEAR(PINB, 6);
+#endif
 }
 
 void on_button_interrupt()
 {
 	cli();
-	powerState = !powerState;
+	s_powerState = !s_powerState;
 
 	// debounce
 	_delay_ms(100);
 
-	if (powerState)
+	if (s_powerState)
 	{
 		// prepare for power up
 		sleep_disable();

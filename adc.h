@@ -3,7 +3,7 @@
 
 #include "defs.h"
 
-#define CENTI_VOLTS_TO_VALUE(v) (v >> 3)
+#define CENTI_VOLTS_TO_VALUE(v) (v << 1)
 
 void adc_init();
 void adc_stop();

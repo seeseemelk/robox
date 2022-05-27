@@ -19,7 +19,7 @@ static void general_init()
 	led_init();
 	power_init();
 	adc_init();
-	power_disable_amp();
+	power_disable_ble();
 	button_init();
 	audio_init();
 	battery_init();
