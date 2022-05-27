@@ -23,6 +23,13 @@ static bool min_time_separation = true;
 static u8 max_previous = 20;
 static u8 max_current = 0;
 
+// static u8 amplitude_at_1_previous = 0;
+// static u8 amplitude_at_2_previous = 0;
+// static u8 amplitude_at_3_previous = 0;
+// static u8 amplitude_at_4_previous = 0;
+// static u8 amplitude_at_5_previous = 0;
+// static u8 amplitude_at_6_previous = 0;
+
 // static bool test_toggle = false;
 
 
@@ -36,7 +43,7 @@ void audio_init()
 	// Enable Timer 1 output compare interrupt A
 	SET_BIT(TIMSK, OCIE1A);
 	// Configure the output compare register
-	OCR1A = 122;
+	OCR1A = 80;
 	// Disable pin output functions
 	// TCCR1A &= ~(MASK(COM1A1) | MASK(COM1A0) | MASK(COM1B1) | MASK(COM1B0));
 	// TCCR1C &= ~(MASK(COM1D1) | MASK(COM1D0))
@@ -69,8 +76,8 @@ u8 amplitude_at(u8 index)//, i16 scale)
 // static u8 s_status = 0;
 void audio_render_effects()
 {
-	u8 amplitude_at_1 = 0;
 	// double avg_beats = 0;
+	u8 amplitude_at_1 = 0;
 
 	adc_read_audio_left();
 	s_audio_write_index = 0;
@@ -96,7 +103,6 @@ void audio_render_effects()
 		if (amplitude_at_1 == 0)
 		{
 			min_amplitude = true;
-			// for (double j = 0; j<1000; j++);	// debounce
 		}
 		// for (u8 i = 1; i<ARRAY_SIZE; i++)
 		// 	avg_beats = ((double)amplitude_at(i)) / ((double)ARRAY_SIZE);
@@ -111,18 +117,24 @@ void audio_render_effects()
 		// }
 
 		// 
-		if ((min_time_separation == true))// && (min_amplitude == true))// && (max_previous <= amplitude_at_1) )
+		if ((min_time_separation == true) && (min_amplitude == true) && (max_previous <= amplitude_at_1) )
 		{
-			led_set1(
-				amplitude_at(3),
-				amplitude_at(2),
-				amplitude_at(1)
-			);
-			led_set2(
-				amplitude_at(6),
-				amplitude_at(5),
-				amplitude_at(4)
-			);
+			if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
+			{
+				led_set1(
+					amplitude_at(3),
+					amplitude_at(2),
+					amplitude_at(1)
+				);
+			}
+			if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
+			{
+				led_set2(
+					amplitude_at(6),
+					amplitude_at(5),
+					amplitude_at(4)
+				);
+			}
 			min_amplitude = false;
 			min_time_separation = false;
 		}
