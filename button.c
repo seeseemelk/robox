@@ -1,7 +1,9 @@
 #include "button.h"
+
 #include "adc.h"
-#include "power.h"
+#include "config.h"
 #include "defs.h"
+#include "power.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -9,7 +11,7 @@
 #include <avr/power.h>
 #include <util/delay.h>
 
-int powerState = 0;
+static bool s_powerState = 0;
 
 /*
 	wakey_wakey - function to be called,
@@ -25,11 +27,6 @@ void wakey_wakey()
 
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
-	power_enable_amp();
-	/*
-	sei();
-    ADCSRA |= _BV(ADEN);                    // ADC on
-	*/
 }
 
 /*
@@ -38,10 +35,7 @@ void wakey_wakey()
 */
 void nap_time()
 {
-	power_disable_amp();
 	power_disable_ble();
-	// led_off();
-	// adc_stop();
 
 	// power down modules on mcu
 	power_adc_disable();
@@ -62,23 +56,11 @@ void disable_on_interrupt()
 
 void button_init()
 {
-	// SET_BIT(DDRB, DDB6); // configre PB6 as an input
 	DDRB &= ~(1 << 6);	// configre PB6 as an input
 	
 	enable_on_interrupt();
-	// SET_BIT(GIMSK, PCIE1);   //Enable External Interrupts Pin change
-	// SET_BIT(MCUCR, PCINT6);	// falling edge
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
-
-	// enable external interrupt
-	// GIMSK |= (1 << INT0);
-
-	/*
-	cli();
-	GIMSK = 0b00100000;	//enable pin change interrupt
-	PCMSK = 0b00000111;	//enable interrupt on gpioxxxxx
-	*/
 }
 
 /*
@@ -87,22 +69,28 @@ void button_init()
 */
 bool button_is_pressed()
 {
-	return !TEST_BIT_SET(PINB, 6);
+#ifdef INVERT_IO
+	return TEST_BIT_SET(PINB, 6);
+#else
+	return TEST_BIT_CLEAR(PINB, 6);
+#endif
 }
 
-// void on_button_interrupt()
-// {
-// 	cli();
-// 	powerState = !powerState;
+void on_button_interrupt()
+{
+	cli();
+	s_powerState = !s_powerState;
 
 // 	// debounce
 // 	_delay_ms(100);
 
-// 	if (powerState)
-// 	{
-// 		// prepare for power up
-// 		sleep_disable();
-// 		sei();
+	if (s_powerState)
+	{
+		// prepare for power up
+		sleep_disable();
+		sei();
+	}
+}
 		
 // 		wakey_wakey();
 
@@ -119,7 +107,7 @@ bool button_is_pressed()
 
 // }
 
-// ISR(INT0_vect)
-// {
-// 	on_button_interrupt();
-// }
+ISR(INT0_vect)
+{
+ 	on_button_interrupt();
+}

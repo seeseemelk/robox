@@ -2,9 +2,9 @@
 #define CONFIG_H_
 
 /**
- * Uncomment when LEDs should be inverted
+ * Uncomment when IOs should be inverted
  */
-//#define INVERT_LEDS
+//#define INVERT_IO
 
 
 

@@ -19,7 +19,7 @@
 #define PIN_MASKS (MASK(LED1_R) | MASK(LED1_G) | MASK(LED1_B) \
 	     | MASK(LED2_R) | MASK(LED2_G) | MASK(LED2_B))
 
-#ifdef INVERT_LEDS
+#ifdef INVERT_IO
 #define LED_MASK_INIT PIN_MASKS
 #define ENABLE_LED(var, bit) CLEAR_BIT(var, bit)
 #else
