@@ -15,7 +15,7 @@ void battery_init()
 
 void battery_update()
 {
-	s_charging = power_is_psu_charging();
+	s_charging = power_is_psu_charging() || power_is_psu_standby();
 	adc_read_battery();
 	s_status = BATT_UNKNOWN;
 }
