@@ -54,9 +54,19 @@ void led_init()
 	PORTA |= PIN_MASKS;
 }
 
-static u8 convertBrightness(u8 value)
+static u8 convertBrightness(u8 value, double scale)
 {
-	return (value & 0x3F);
+	return ((u8) (((double) value) * scale) & 0x3F);
+}
+
+double scale_brightness_to_max(u8 r, u8 g, u8 b)
+{
+	u8 max = r;
+
+	if (g > max) max = g;
+	if (b > max) max = b;
+
+	return ((double)63) / ((double) max);
 }
 
 void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)
@@ -82,16 +92,18 @@ void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)
 
 void led_set1(u8 r, u8 g, u8 b)
 {
-	s_led1.r = convertBrightness(r);
-	s_led1.g = convertBrightness(g);
-	s_led1.b = convertBrightness(b);
+	double scale = scale_brightness_to_max(r, g, b);
+	s_led1.r = convertBrightness(r, scale);
+	s_led1.g = convertBrightness(g, scale);
+	s_led1.b = convertBrightness(b, scale);
 }
 
 void led_set2(u8 r, u8 g, u8 b)
 {
-	s_led2.r = convertBrightness(r);
-	s_led2.g = convertBrightness(g);
-	s_led2.b = convertBrightness(b);
+	double scale = scale_brightness_to_max(r, g, b);
+	s_led2.r = convertBrightness(r, scale);
+	s_led2.g = convertBrightness(g, scale);
+	s_led2.b = convertBrightness(b, scale);
 }
 
 ISR(TIMER0_COMPA_vect)
