@@ -33,6 +33,12 @@ Targets:
   hex-text  - Produces an intel hex file
 ```
 
+
+### upload elf
+
+```
+sudo avrdude -c avrisp2 -p t461 -v -U flash:w:"/home/www/robox/bin/robox.elf"
+```
 ## FFT library
 https://github.com/kosme/fix_fft
 
