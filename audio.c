@@ -75,46 +75,33 @@ u8 amplitude_at(u8 index)
 	return magnitude / 256 / 4;
 }
 
+static void render_battery_effect(u8 maskR, u8 maskG, u8 maskB)
+{
+	if (s_skip == 0)
+	{
+		i8 breathingA = breathing_at(s_breathing_index);
+		i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
+		s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
+
+		led_set1(breathingA & maskR, breathingA & maskG, breathingA & maskB);
+		led_set2(breathingB & maskR, breathingB & maskG, breathingB & maskB);
+	}
+	s_skip = (s_skip + 1) % 1024;
+}
+
 // static u8 s_status = 0;
 void audio_render_effects()
 {
 	switch (battery_status())
 	{
 	case BATT_LOW:
-		if (s_skip == 0)
-		{
-			i8 breathingA = breathing_at(s_breathing_index);
-			i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
-			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
-
-			led_set1(breathingA, 0, 0);
-			led_set2(breathingB, 0, 0);
-		}
-		s_skip = (s_skip + 1) % 1024;
+		render_battery_effect(0xFF, 0x00, 0x00);
 		break;
 	case BATT_CHARGING:
-		if (s_skip == 0)
-		{
-			i8 breathingA = breathing_at(s_breathing_index);
-			i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
-			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
-
-			led_set1(breathingA, breathingA, 0);
-			led_set2(breathingB, breathingB, 0);
-		}
-		s_skip = (s_skip + 1) % 1024;
+		render_battery_effect(0xFF, 0xFF, 0x00);
 		break;
 	case BATT_FULL:
-		if (s_skip == 0)
-		{
-			i8 breathingA = breathing_at(s_breathing_index);
-			i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
-			s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
-
-			led_set1(0, breathingA, 0);
-			led_set2(0, breathingB, 0);
-		}
-		s_skip = (s_skip + 1) % 1024;
+		render_battery_effect(0x00, 0xFF, 0x00);
 		break;
 	case BATT_GOOD:
 	case BATT_CRIT:

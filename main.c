@@ -12,8 +12,7 @@
 
 #include <avr/sleep.h>
 
-
-static void general_init()
+void general_init()
 {
 	cli();
 	led_init();
@@ -42,5 +41,5 @@ int main()
 		check_if_tired();
 		battery_update();
 		audio_render_effects();
-	}	
+	}
 }

@@ -65,8 +65,9 @@ void nap_time()
 void enter_deepsleep()
 {
 	cli();
-	enable_on_interrupt();
-	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	DIDR0 = MASK(AREFD);
+	adc_stop();
+	set_sleep_mode(SLEEP_MODE_STANDBY);
 	sleep_bod_disable();
 	sleep_enable();
 	nap_time();
@@ -79,7 +80,7 @@ void check_if_tired()
 	cli();
 	if (button_is_pressed())
 	{
-		for (double j = 0; j<20000; j++);	// debounce
+		for (long j = 0; j<20000; j++);	// debounce
 		// going to sleep
 		enter_deepsleep();
 	}
@@ -94,7 +95,7 @@ ISR(INT0_vect, ISR_BLOCK)
 	sleep_disable();
 	wakey_wakey();
 	// if (powerState > 2) powerState = 0;
-	for (double j = 0; j<20000; j++);	// debounce
+	for (long j = 0; j<20000; j++);	// debounce
 
 }
 
@@ -112,9 +113,9 @@ void button_init()
 {
 	DDRB &= ~(1 << 6);	// configre PB6 as an input
 	
-	enable_on_interrupt();
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
+	enable_on_interrupt();
 }
 
 /*

@@ -23,8 +23,8 @@ typedef enum
  * potential cause the loss of an interrupt.
  * I wish Atmel had put that flag in a different register...
  */
-#define ADCSRA_CLEAR(mask) ADCSRA = (ADCSRA & ~(MASK(ADIF) | mask))
-#define ADCSRA_SET(mask) ADCSRA = (ADCSRA & ~MASK(ADIF)) | mask
+#define ADCSRA_CLEAR(bit) ADCSRA = (ADCSRA & ~(MASK(ADIF) | MASK(bit)))
+#define ADCSRA_SET(bit) ADCSRA = (ADCSRA & ~MASK(ADIF)) | MASK(bit)
 
 // Type of ADC input that is being generated.
 static Input s_input = INPUT_NONE;
