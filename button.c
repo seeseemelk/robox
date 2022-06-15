@@ -11,6 +11,10 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <util/delay.h>
+#include <util/delay_basic.h>
+
+#define ENABLE_ON_INTERRUPT   SET_BIT(GIMSK, INT0);   //Enable External Interrupts Pin change
+#define DISABLE_ON_INTERRUPT  CLEAR_BIT(GIMSK, INT0);
 
 /*
 	wakey_wakey - function to be called,
@@ -65,6 +69,7 @@ void nap_time()
 void enter_deepsleep()
 {
 	cli();
+	ENABLE_ON_INTERRUPT;
 	DIDR0 = MASK(AREFD);
 	adc_stop();
 	set_sleep_mode(SLEEP_MODE_STANDBY);
@@ -80,7 +85,11 @@ void check_if_tired()
 	cli();
 	if (button_is_pressed())
 	{
-		for (long j = 0; j<20000; j++);	// debounce
+		// for (u16 j = 0; j<65535; j++)
+		// 	for (u16 k = 0; k<65535; k++);	// debounce
+		for(u8 j = 0; j<10; j++)
+			_delay_loop_2(65535);	// 261.2 ms / 8 (running at 8MHz instead of 1MHz)
+		// for (double j = 0; j<20000; j++);
 		// going to sleep
 		enter_deepsleep();
 	}
@@ -90,23 +99,16 @@ void check_if_tired()
 ISR(INT0_vect, ISR_BLOCK)
 {
 
-	disable_on_interrupt();
+	DISABLE_ON_INTERRUPT;
 	// powerState++;
 	sleep_disable();
 	wakey_wakey();
 	// if (powerState > 2) powerState = 0;
-	for (long j = 0; j<20000; j++);	// debounce
+	for(u8 j = 0; j<10; j++)
+		_delay_loop_2(65535);	// 261.2 ms / 8 (running at 8MHz instead of 1MHz)
+	// for (double j = 0; j<20000; j++);
+	// 	for (u16 k = 0; k<65535; k++);	// debounce
 
-}
-
-void enable_on_interrupt()
-{
-	SET_BIT(GIMSK, INT0);   //Enable External Interrupts Pin change
-}
-
-void disable_on_interrupt()
-{
-	CLEAR_BIT(GIMSK, INT0);
 }
 
 void button_init()
@@ -115,7 +117,7 @@ void button_init()
 	
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
-	enable_on_interrupt();
+	ENABLE_ON_INTERRUPT;
 }
 
 /*
