@@ -86,7 +86,7 @@ static void render_battery_effect(u8 maskR, u8 maskG, u8 maskB)
 		led_set1(breathingA & maskR, breathingA & maskG, breathingA & maskB);
 		led_set2(breathingB & maskR, breathingB & maskG, breathingB & maskB);
 	}
-	s_skip = (s_skip + 1) % 1024;
+	s_skip = (s_skip + 1) % 512;
 }
 
 // static u8 s_status = 0;
