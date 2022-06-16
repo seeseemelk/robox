@@ -96,7 +96,7 @@ void led_set1(u8 r, u8 g, u8 b)
 {
 	i16 scale = 63;
 	if (s_scale)
-		scale_brightness_to_max(r, g, b);
+		scale = scale_brightness_to_max(r, g, b);
 	s_led1.r = convertBrightness(r, scale);
 	s_led1.g = convertBrightness(g, scale);
 	s_led1.b = convertBrightness(b, scale);
@@ -106,7 +106,7 @@ void led_set2(u8 r, u8 g, u8 b)
 {
 	i16 scale = 63;
 	if (s_scale)
-		scale_brightness_to_max(r, g, b);
+		scale = scale_brightness_to_max(r, g, b);
 	s_led2.r = convertBrightness(r, scale);
 	s_led2.g = convertBrightness(g, scale);
 	s_led2.b = convertBrightness(b, scale);
