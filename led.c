@@ -31,6 +31,7 @@ static Color s_led1;
 static Color s_led2;
 static Color _s_led1;
 static Color _s_led2;
+static bool s_scale = false;
 
 static unsigned int s_counter;
 
@@ -54,10 +55,10 @@ void led_init()
 	PORTA |= PIN_MASKS;
 }
 
-static u8 convertBrightness(u8 value, u8 /*scale*/)
+static u8 convertBrightness(u8 value, u8 scale)
 {
-//	return ((value * scale) / 64) & 0x3F;
-	return value;
+	u16 longValue = value;
+	return (longValue * 63 / scale) & 0x3F;
 }
 
 u8 scale_brightness_to_max(u8 r, u8 g, u8 b)
@@ -93,7 +94,9 @@ void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)
 
 void led_set1(u8 r, u8 g, u8 b)
 {
-	i16 scale = scale_brightness_to_max(r, g, b);
+	i16 scale = 63;
+	if (s_scale)
+		scale_brightness_to_max(r, g, b);
 	s_led1.r = convertBrightness(r, scale);
 	s_led1.g = convertBrightness(g, scale);
 	s_led1.b = convertBrightness(b, scale);
@@ -101,10 +104,22 @@ void led_set1(u8 r, u8 g, u8 b)
 
 void led_set2(u8 r, u8 g, u8 b)
 {
-	i16 scale = scale_brightness_to_max(r, g, b);
+	i16 scale = 63;
+	if (s_scale)
+		scale_brightness_to_max(r, g, b);
 	s_led2.r = convertBrightness(r, scale);
 	s_led2.g = convertBrightness(g, scale);
 	s_led2.b = convertBrightness(b, scale);
+}
+
+void led_enable_scaling()
+{
+	s_scale = true;
+}
+
+void led_disable_scaling()
+{
+	s_scale = false;
 }
 
 ISR(TIMER0_COMPA_vect)

@@ -39,6 +39,7 @@ static i8 breathing_at(i8 point)
 }
 static u16 s_breathing_index = 0;
 static u16 s_skip = 0;
+static bool s_swap = false;
 
 void audio_init()
 {
@@ -79,14 +80,32 @@ static void render_battery_effect(u8 maskR, u8 maskG, u8 maskB)
 {
 	if (s_skip == 0)
 	{
+		led_disable_scaling();
 		i8 breathingA = breathing_at(s_breathing_index);
 		i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
 		s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
 
 		led_set1(breathingA & maskR, breathingA & maskG, breathingA & maskB);
 		led_set2(breathingB & maskR, breathingB & maskG, breathingB & maskB);
+		led_enable_scaling();
 	}
 	s_skip = (s_skip + 1) % 512;
+}
+
+static u8 distance(u8 a, u8 b)
+{
+	if (a > b)
+		return a - b;
+	else
+		return b - a;
+}
+
+static void set_led(bool left, u8 r, u8 g, u8 b)
+{
+	if (left != s_swap)
+		led_set1(r, g, b);
+	else
+		led_set2(r, g, b);
 }
 
 // static u8 s_status = 0;
@@ -134,11 +153,12 @@ void audio_render_effects()
 				min_amplitude = true;
 			}
 
-			if ((min_time_separation == true) && (min_amplitude == true) && (max_previous <= amplitude_at_1) )
+			if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
 			{
+				s_swap = !s_swap;
 				if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
 				{
-					led_set1(
+					set_led(true,
 						amplitude_at(3),
 						amplitude_at(2),
 						amplitude_at(1)
@@ -146,7 +166,7 @@ void audio_render_effects()
 				}
 				if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
 				{
-					led_set2(
+					set_led(false,
 						amplitude_at(6),
 						amplitude_at(5),
 						amplitude_at(4)
