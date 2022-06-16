@@ -30,7 +30,7 @@ BatteryState battery_status()
 		enter_deepsleep();
 		return BATT_CRIT;
 	}
-	else if (s_charging && s_value > CENTI_VOLTS_TO_VALUE(400))
+	else if (power_is_psu_standby())
 		return BATT_FULL;
 	else if (s_charging)
 		return BATT_CHARGING;

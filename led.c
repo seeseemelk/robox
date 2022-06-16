@@ -54,19 +54,20 @@ void led_init()
 	PORTA |= PIN_MASKS;
 }
 
-static u8 convertBrightness(u8 value, i16 scale)
+static u8 convertBrightness(u8 value, u8 /*scale*/)
 {
-	return ((u8) (((i16) value) * scale) & 0x3F);
+//	return ((value * scale) / 64) & 0x3F;
+	return value;
 }
 
-i16 scale_brightness_to_max(u8 r, u8 g, u8 b)
+u8 scale_brightness_to_max(u8 r, u8 g, u8 b)
 {
 	u8 max = r;
 
 	if (g > max) max = g;
 	if (b > max) max = b;
 
-	return ((i16)63) / ((i16) max);
+	return max;
 }
 
 void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)

@@ -80,18 +80,32 @@ void enter_deepsleep()
 	sleep_cpu();
 }
 
+static void wait_until_depressed()
+{
+	u8 count = 0;
+	while (count < 128)
+	{
+		if (button_is_pressed())
+			count = 0;
+		else
+			count++;
+	}
+}
+
 void check_if_tired()
 {
 	cli();
 	if (button_is_pressed())
 	{
+		wait_until_depressed();
 		// for (u16 j = 0; j<65535; j++)
 		// 	for (u16 k = 0; k<65535; k++);	// debounce
-		for(u8 j = 0; j<10; j++)
-			_delay_loop_2(65535);	// 261.2 ms / 8 (running at 8MHz instead of 1MHz)
+//		for(u8 j = 0; j<10; j++)
+//			_delay_loop_2(65535);	// 261.2 ms / 8 (running at 8MHz instead of 1MHz)
 		// for (double j = 0; j<20000; j++);
 		// going to sleep
 		enter_deepsleep();
+		wait_until_depressed();
 	}
 	sei();
 }
@@ -104,8 +118,8 @@ ISR(INT0_vect, ISR_BLOCK)
 	sleep_disable();
 	wakey_wakey();
 	// if (powerState > 2) powerState = 0;
-	for(u8 j = 0; j<10; j++)
-		_delay_loop_2(65535);	// 261.2 ms / 8 (running at 8MHz instead of 1MHz)
+//	for(u8 j = 0; j<10; j++)
+//		_delay_loop_2(65535);	// 261.2 ms / 8 (running at 8MHz instead of 1MHz)
 	// for (double j = 0; j<20000; j++);
 	// 	for (u16 k = 0; k<65535; k++);	// debounce
 
