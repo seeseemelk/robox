@@ -12,21 +12,22 @@
 #include <util/delay.h>
 
 #include <avr/sleep.h>
+#include <avr/cpufunc.h>
 #include <stdio.h>
 
-static int serial_putchar(char c, FILE *stream)
-{
-	if (c == '\n')
-		serial_putchar('\r', stream);
+// static int serial_putchar(char c, FILE *stream);
+
+// static int serial_putchar(char c, FILE *stream)
+// {
+// 	if (c == '\n')
+// 		serial_putchar('\r', stream);
 	
-	transmit_byte(c);
+// 	transmit_byte(c);
 
-	return 0;
-}
+// 	return 0;
+// }
 
-static FILE serial_out = FDEV_SETUP_STREAM(serial_putchar, NULL, _FDEV_SETUP_WRITE);
-
-
+// static FILE serial_output = FDEV_SETUP_STREAM(serial_putchar, NULL, _FDEV_SETUP_WRITE);
 
 // static void general_init()
 // {
@@ -63,17 +64,20 @@ static FILE serial_out = FDEV_SETUP_STREAM(serial_putchar, NULL, _FDEV_SETUP_WRI
 /* test main serial */
 int main()
 {
+	u8 read;
+
 	cli();
 	serial_init();
 	sei();
-
-	stdout = &serial_out;
-
-	// bool toggle = false;
-	for (double j = 0; j<100000; j++);
 	while (1)
 	{
-		test();
+		read = read_byte();
+		transmit_byte(read);
+
+		// for (double j = 0; j<100000; j++);
+		// test();
+		// sprintf(stdout, "Hello world!\n");
 		// printf("Hello world!\n");
+		// fprintf(&serial_out, "%f\n", 3.1415);
 	}
 }
