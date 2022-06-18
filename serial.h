@@ -28,8 +28,8 @@
     #define SERIAL_SPEED 138
     #define SERIAL_CLOCK MASK(CS10)
     #define SERIAL_OFFSET 69
-    #define SERIAL_RX_DELAY 38
-    #define SERIAL_RX_MIDDLE 20
+    #define SERIAL_RX_DELAY 42
+    #define SERIAL_RX_MIDDLE 22
 
 #endif
 
