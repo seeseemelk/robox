@@ -18,6 +18,7 @@ void general_init()
 	led_init();
 	power_init();
 	adc_init();
+	battery_init();
 	button_init();
 	audio_init();
 	power_enable_ble();

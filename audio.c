@@ -114,6 +114,7 @@ void audio_render_effects()
 	switch (battery_status())
 	{
 	case BATT_LOW:
+	case BATT_CRIT:
 		render_battery_effect(0xFF, 0x00, 0x00);
 		break;
 	case BATT_CHARGING:
@@ -123,7 +124,6 @@ void audio_render_effects()
 		render_battery_effect(0x00, 0xFF, 0x00);
 		break;
 	case BATT_GOOD:
-	case BATT_CRIT:
 	case BATT_UNKNOWN:
 		// u8 amplitude_at_1 = 0;
 
