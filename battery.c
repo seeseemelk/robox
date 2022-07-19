@@ -10,19 +10,19 @@
 static volatile u16 s_value;
 static bool s_charging;
 static bool s_lowBattery;
-static int s_stateDebounce;
+static int s_deepSleepDebounce;
 
 void battery_init()
 {
-	s_stateDebounce = 0;
+	s_deepSleepDebounce = 0;
 	s_lowBattery = false;
 }
 
 void battery_update()
 {
 	s_charging = power_is_psu_charging();
-	adc_read_battery();
 	s_value = WAIT_READ;
+	adc_read_battery();
 }
 
 BatteryState battery_status()
@@ -31,11 +31,18 @@ BatteryState battery_status()
 
 	if (s_value < CENTI_VOLTS_TO_VALUE(320))
 	{
-		s_lowBattery = true;
-		enter_deepsleep();
-		return BATT_CRIT;
+		if (++s_deepSleepDebounce == 64)
+		{
+			s_lowBattery = true;
+			enter_deepsleep();
+			s_deepSleepDebounce = 0;
+			return BATT_CRIT;
+		}
 	}
-	else if (power_is_psu_standby())
+	else
+		s_deepSleepDebounce = 0;
+
+	if (power_is_psu_standby())
 		return BATT_FULL;
 	else if (s_charging)
 		return BATT_CHARGING;
@@ -58,5 +65,6 @@ BatteryState battery_status()
 
 void battery_on_read(u16 value)
 {
-	s_value = value;
+	if (s_value == WAIT_READ)
+		s_value = value;
 }
