@@ -20,9 +20,12 @@ DEP = $(OBJ:%.o=%.d)
 
 # Flags that will be passed to GCC
 CFLAGS = -mmcu=attiny461a -mint8 -Os -Wall -Wextra -Werror -std=c99 -flto \
-	-DF_CPU=8000000
+	-DF_CPU=8000000 -gstabs \
+	-L/home/www/avr8-gnu-toolchain-linux_x86_64/avr/lib/avr25
 
-.PHONY: all clean flash help
+# -Wl,-u,vfprintf -lprintf_min -lprintf_min
+
+.PHONY: all clean flash mk2 help
 
 all: elf
 elf: $(ELF)
@@ -33,6 +36,9 @@ clean:
 	
 flash: $(ELF)
 	avrdude -p t461 -c stk500 -P /dev/ttyUSB0 -U flash:w:$(ELF) -v
+
+mk2: $(ELF)
+	avrdude -c avrisp2 -p t461 -v -U flash:w:$(ELF)
 
 help:
 	@echo "Targets:"

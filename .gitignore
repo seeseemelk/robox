@@ -5,5 +5,7 @@
 /.project
 /.cproject
 /.settings
+
+# vs code files
 /.vscode
 /docs
