@@ -1,6 +1,9 @@
 # Binary files
 /bin
 
+# Documentation
+/docs
+
 # Eclipse files
 /.project
 /.cproject

@@ -12,10 +12,24 @@
 #include <avr/power.h>
 #include <util/delay.h>
 
-/*
-	wakey_wakey - function to be called,
-	when the interupt awakes the mcu from sleeping 
-*/
+/**
+ * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
+ * 
+ */
+void button_init()
+{
+	DDRB &= ~(1 << 6);	// configre PB6 as an input
+	
+	enable_on_interrupt();
+	// level interrupt INT0 (low level)
+    MCUCR &= ~((1 << ISC01) | (1 << ISC00));
+}
+
+/**
+ * @brief Function to be called when the interupt awakes the mcu from sleeping.
+ * It will powerup all mcu modules + bluetooth module and amp.
+ * 
+ */
 void wakey_wakey()
 {
 	// CLEAR_BIT(CLKPR, CLKPS3);
@@ -35,10 +49,11 @@ void wakey_wakey()
 	power_enable_ble();
 }
 
-/*
-	nap_time - going back to sleep if off command is given.
-	Places the mcu and oher components in low power mode.
-*/
+/**
+ * @brief Function to be called when the off command is given.
+ * Places the mcu and oher components in low power mode.
+ * 
+ */
 void nap_time()
 {
 	// set lower clock speed
@@ -62,6 +77,12 @@ void nap_time()
 	// DIDR1 |= (MASK(ADC10D) | MASK(ADC9D) | MASK(ADC8D) | MASK(ADC7D));
 }
 
+/**
+ * @brief Call to place the MCU itself in a low power mode.
+ * Be sure to configure an interupt that can wake the MCU from the "Power Down"
+ * sleep mode.
+ * 
+ */
 void enter_deepsleep()
 {
 	cli();
@@ -74,6 +95,13 @@ void enter_deepsleep()
 	sleep_cpu();
 }
 
+
+/**
+ * @brief Function to be used in the main program loop.
+ * Checks if on / off button is pressed by polling it.
+ * If pressed configure the MCU to go in sleep mode.
+ * 
+ */
 void check_if_tired()
 {
 	cli();
@@ -86,41 +114,44 @@ void check_if_tired()
 	sei();
 }
 
+/**
+ * @brief Construct a new ISR object
+ * Interrupt routine when the MCU wakes up from an on / off button press.
+ * 
+ */
 ISR(INT0_vect, ISR_BLOCK)
 {
 
 	disable_on_interrupt();
-	// powerState++;
 	sleep_disable();
 	wakey_wakey();
-	// if (powerState > 2) powerState = 0;
 	for (double j = 0; j<20000; j++);	// debounce
 
 }
 
+/**
+ * @brief Configure INT0 to be an interrupt.
+ * 
+ */
 void enable_on_interrupt()
 {
-	SET_BIT(GIMSK, INT0);   //Enable External Interrupts Pin change
+	SET_BIT(GIMSK, INT0);   // Enable External Interrupts Pin change
 }
 
+/**
+ * @brief Remove INT0 as an interrupt.
+ * 
+ */
 void disable_on_interrupt()
 {
-	CLEAR_BIT(GIMSK, INT0);
+	CLEAR_BIT(GIMSK, INT0);	// Disable External Interrupts Pin change
 }
 
-void button_init()
-{
-	DDRB &= ~(1 << 6);	// configre PB6 as an input
-	
-	enable_on_interrupt();
-	// level interrupt INT0 (low level)
-    MCUCR &= ~((1 << ISC01) | (1 << ISC00));
-}
-
-/*
-	button_is_pressed - poll manually if button is pressed.
-	(active low)
-*/
+/**
+ * @brief Poll manually if button is pressed. (active low)
+ * 
+ * @return bool, true if pressed down, false if not pressed.
+ */
 bool button_is_pressed()
 {
 #ifdef INVERT_IO
@@ -129,39 +160,3 @@ bool button_is_pressed()
 	return TEST_BIT_CLEAR(PINB, 6);
 #endif
 }
-
-// void on_button_interrupt()
-// {
-// 	cli();
-// 	s_powerState = !s_powerState;
-
-// // 	// debounce
-// // 	_delay_ms(100);
-
-// 	if (s_powerState)
-// 	{
-// 		// prepare for power up
-// 		sleep_disable();
-// 		sei();
-// 	}
-// }
-		
-// 		wakey_wakey();
-
-// 	} else {
-// 		// prepare for sleep
-// 		nap_time();
-
-// 		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-// 		cli();
-// 		sleep_enable();
-// 		sei();
-// 		sleep_cpu();
-// 	}
-
-// }
-
-// ISR(INT0_vect)
-// {
-//  	on_button_interrupt();
-// }

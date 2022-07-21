@@ -6,8 +6,6 @@
 
 #include <stdbool.h>
 
-// extern int powerState;
-
 void enter_deepsleep();
 
 void disable_on_interrupt();

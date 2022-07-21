@@ -34,6 +34,9 @@ clean:
 flash: $(ELF)
 	avrdude -p t461 -c stk500 -P /dev/ttyUSB0 -U flash:w:$(ELF) -v
 
+doc:
+	doxygen doc_config
+
 help:
 	@echo "Targets:"
 	@echo "  all   - (default) Builds the firmware. Same as the elf target"
@@ -43,6 +46,7 @@ help:
 	@echo "  flash - Flash the project onto a chip"
 	@echo "  help  - Shows this help file"
 	@echo "  hex   - Produces a hex file"
+	@echo "  doc   - Builds the doxygen documentation"
 
 $(ELF): $(OBJ)
 	avr-gcc $(CFLAGS) -o $@ $^
