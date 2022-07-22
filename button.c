@@ -16,9 +16,9 @@
 
 #define ENABLE_ON_INTERRUPT   SET_BIT(GIMSK, INT0)   //Enable External Interrupts Pin change
 #define DISABLE_ON_INTERRUPT  CLEAR_BIT(GIMSK, INT0)
-#define ENABLE_TIMER1  SET_BIT(TIMSK, OCIE1B)		// Enable  Timer 1 output compare interrupt A
-#define DISABLE_TIMER1 CLEAR_BIT(TIMSK, OCIE1B)		// Disable Timer 1 output compare interrupt A
-#define ONGOING_TIMER1 TEST_BIT_SET(TIMSK, OCIE1B)
+#define ENABLE_TIMER1  SET_BIT(TIMSK, TOIE1)		// Enable  Timer 1 output compare interrupt A
+#define DISABLE_TIMER1 CLEAR_BIT(TIMSK, TOIE1)		// Disable Timer 1 output compare interrupt A
+#define ONGOING_TIMER1 TEST_BIT_SET(TIMSK, TOIE1)
 
 volatile bool global_light_enable = true;
 volatile bool global_music_enable = true;
@@ -38,8 +38,8 @@ void button_init()
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
 
-	OCR1A = 195;	// Timer 1 top value (10ms)
-    TCCR1B = MASK(CS13) | MASK(CS12);	// Timer 1 clock prescaler
+	OCR1C = 35;	// Timer 1 top value (4.48ms)
+    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);	// Timer 1 clock prescaler
 }
 
 /**
@@ -154,13 +154,13 @@ u8 button_press_menu()
 	// DISABLE_TIMER1;
 	cli();
 
-	if (press_sequence == 0xFFFF)
+	if (button_is_pressed())
 		state = MENU_SHUTDOWN;
 	else
 	{
-		for (u16 i = 0; i<16; i++)
+		for (u16 i = 0; i<12; i++)
 		{
-			if (((press_sequence >> i) & 0b11) == 0b01)
+			if (((press_sequence >> i) & 0xF) == 0b0011)
 				short_presses++;
 		}
 
@@ -196,6 +196,8 @@ void check_if_tired()
 		switch (button_press_menu())
 		{
 			case MENU_SHUTDOWN:
+				// red + white
+				// long press
 				color[0] = true;
 				color[1] = true;
 				color[2] = true;
@@ -209,23 +211,27 @@ void check_if_tired()
 				break;
 
 			case MENU_LIGHT_TOGGLE:
+				// green + white
+				// 1x short press
 				color[0] = true;
 				color[1] = true;
 				color[2] = true;
-				color[3] = true;
-				color[4] = false;
-				color[5] = true;
+				color[3] = false;
+				color[4] = true;
+				color[5] = false;
 				// fade_1_time(0xFF, 0x00, 0xFF);
 				// global_light_enable = !global_light_enable;
 				// led_set_full(0, 0, 0, 0, 0, 0);
 				break;
 
 			case MENU_MUSIC_TOGGLE:
+				// blue + white
+				// 2x short press
 				color[0] = true;
 				color[1] = true;
 				color[2] = true;
 				color[3] = false;
-				color[4] = true;
+				color[4] = false;
 				color[5] = true;
 				// led_set_full(false, true, true, false, true, true);
 				// fade_1_time(0x00, 0xFF, 0xFF);
@@ -237,14 +243,6 @@ void check_if_tired()
 				break;
 
 			case MENU_NOTHING:
-				color[0] = true;
-				color[1] = true;
-				color[2] = true;
-				color[3] = false;
-				color[4] = true;
-				color[5] = false;
-				break;
-
 			default:
 				color[0] = true;
 				color[1] = true;
@@ -290,7 +288,7 @@ bool button_is_pressed()
 #endif
 }
 
-ISR(TIMER1_COMPA_vect, ISR_BLOCK)
+ISR(TIMER1_OVF_vect, ISR_BLOCK)
 {
 	TCNT1 = 0;
 	if (button_is_pressed())
