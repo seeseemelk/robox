@@ -1,4 +1,5 @@
 #include "led.h"
+#include "button.h"
 
 #include "config.h"
 #include "defs.h"
@@ -75,6 +76,9 @@ void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)
 {
 	uint8_t mask = LED_MASK_INIT;
 
+	// guard statement
+	if (! global_light_enable) return;	
+
 	if (r1)
 		ENABLE_LED(mask, LED1_R);
 	if (g1)
@@ -125,19 +129,22 @@ void led_disable_scaling()
 ISR(TIMER0_COMPA_vect)
 {
 	uint8_t mask = LED_MASK_INIT;
-	if (s_counter < _s_led1.r)
-		ENABLE_LED(mask, LED1_R);
-	if (s_counter < _s_led1.g)
-		ENABLE_LED(mask, LED1_G);
-	if (s_counter < _s_led1.b)
-		ENABLE_LED(mask, LED1_B);
+	if (global_light_enable)
+	{
+		if (s_counter < _s_led1.r)
+			ENABLE_LED(mask, LED1_R);
+		if (s_counter < _s_led1.g)
+			ENABLE_LED(mask, LED1_G);
+		if (s_counter < _s_led1.b)
+			ENABLE_LED(mask, LED1_B);
 
-	if (s_counter < _s_led2.r)
-		ENABLE_LED(mask, LED2_R);
-	if (s_counter < _s_led2.g)
-		ENABLE_LED(mask, LED2_G);
-	if (s_counter < _s_led2.b)
-		ENABLE_LED(mask, LED2_B);
+		if (s_counter < _s_led2.r)
+			ENABLE_LED(mask, LED2_R);
+		if (s_counter < _s_led2.g)
+			ENABLE_LED(mask, LED2_G);
+		if (s_counter < _s_led2.b)
+			ENABLE_LED(mask, LED2_B);
+	}
 
 	s_counter = (s_counter - 1) & 0x3F;
 

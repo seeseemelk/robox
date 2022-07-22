@@ -92,6 +92,15 @@ static void render_battery_effect(u8 maskR, u8 maskG, u8 maskB)
 	s_skip = (s_skip + 1) % 512;
 }
 
+void fade_1_time(u8 maskR, u8 maskG, u8 maskB)
+{
+	s_breathing_index = 0;
+	u8 max_index = sizeof(s_breath) * 2;
+
+	for (u8 i = 0; i < max_index; i++)
+		render_battery_effect(maskR, maskG, maskB);
+}
+
 static u8 distance(u8 a, u8 b)
 {
 	if (a > b)
