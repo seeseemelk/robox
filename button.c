@@ -18,11 +18,13 @@
 #define DISABLE_ON_INTERRUPT  CLEAR_BIT(GIMSK, INT0)
 #define ENABLE_TIMER1  SET_BIT(TIMSK, OCIE1B)		// Enable  Timer 1 output compare interrupt A
 #define DISABLE_TIMER1 CLEAR_BIT(TIMSK, OCIE1B)		// Disable Timer 1 output compare interrupt A
+#define ONGOING_TIMER1 TEST_BIT_SET(TIMSK, OCIE1B)
 
 volatile bool global_light_enable = true;
 volatile bool global_music_enable = true;
-volatile u8 press_sequence = 0;
-volatile u8 press_mask = 0x01;
+volatile u16 press_sequence = 0;
+volatile u16 press_mask = 0;
+volatile bool color[] = {false, true, false, false, true, false};
 
 /**
  * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
@@ -36,8 +38,8 @@ void button_init()
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
 
-	OCR1C = 195;	// Timer 1 top value (200ms)
-    TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11);	// Timer 1 clock prescaler
+	OCR1A = 195;	// Timer 1 top value (10ms)
+    TCCR1B = MASK(CS13) | MASK(CS12);	// Timer 1 clock prescaler
 }
 
 /**
@@ -121,7 +123,7 @@ void enter_deepsleep()
 static void wait_until_depressed()
 {
 	u8 count = 0;
-	while (count < 128)
+	while (count < 0xFF)
 	{
 		if (button_is_pressed())
 			count = 0;
@@ -135,49 +137,48 @@ static void wait_until_depressed()
  * 
  * @return MenuState 
  */
-MenuState button_press_menu()
+u8 button_press_menu()
 {
-	MenuState state = nothing;
+	u8 state = MENU_NOTHING;
 	u8 short_presses = 0;
 
+	cli();
 	TCNT1 = 0;
-	u8 press_sequence = 0;
-	u8 press_mask = 0x01;
+	press_sequence = 0x1;
+	press_mask = 0b10;
+	led_set_full(true, true, true, false, false, false);
 
+	sei();
 	ENABLE_TIMER1;
-	while (press_mask);
-	DISABLE_TIMER1;
+	while (press_mask > 0) led_set_full(false, false, true, false, false, true);
+	// DISABLE_TIMER1;
+	cli();
 
-	if (press_sequence == 0xFF)
-		state = shutdown;
+	if (press_sequence == 0xFFFF)
+		state = MENU_SHUTDOWN;
 	else
 	{
-		u8 j = 0b00000001;
-		if (j & press_sequence)
-			short_presses++;
-
-		for (u8 i = 0b00000010; i>0; i <<= 1, j <<= 1)
+		for (u16 i = 0; i<16; i++)
 		{
-			if ((i & press_sequence) && !(j & press_sequence))
+			if (((press_sequence >> i) & 0b11) == 0b01)
 				short_presses++;
 		}
 
 		switch (short_presses)
 		{
 		case 1:
-			state = light_toggle;
+			state = MENU_LIGHT_TOGGLE;
 			break;
 		
 		case 2:
-			state = music_toggle;
+			state = MENU_MUSIC_TOGGLE;
 			break;
 		
 		default:
-			state = invalid;
 			break;
 		}
 	}
-	
+	wait_until_depressed();
 	return state;
 }
 
@@ -194,32 +195,68 @@ void check_if_tired()
 	{
 		switch (button_press_menu())
 		{
-			case shutdown:
-				fade_1_time(0xFF, 0x00, 0x00);
+			case MENU_SHUTDOWN:
+				color[0] = true;
+				color[1] = true;
+				color[2] = true;
+				color[3] = true;
+				color[4] = false;
+				color[5] = false;
+				// fade_1_time(0xFF, 0x00, 0x00);
 				// going to sleep
-				enter_deepsleep();
-				wait_until_depressed();
+				// enter_deepsleep();
+				// wait_until_depressed();
 				break;
 
-			case light_toggle:
-				fade_1_time(0xFF, 0x00, 0xFF);
-				global_light_enable = !global_light_enable;
-				led_set_full(0, 0, 0, 0, 0, 0);
+			case MENU_LIGHT_TOGGLE:
+				color[0] = true;
+				color[1] = true;
+				color[2] = true;
+				color[3] = true;
+				color[4] = false;
+				color[5] = true;
+				// fade_1_time(0xFF, 0x00, 0xFF);
+				// global_light_enable = !global_light_enable;
+				// led_set_full(0, 0, 0, 0, 0, 0);
 				break;
 
-			case music_toggle:
-				fade_1_time(0x00, 0xFF, 0xFF);
-				global_music_enable = !global_music_enable;
-				if (global_music_enable)
-					power_enable_ble();
-				else
-					power_disable_ble();
+			case MENU_MUSIC_TOGGLE:
+				color[0] = true;
+				color[1] = true;
+				color[2] = true;
+				color[3] = false;
+				color[4] = true;
+				color[5] = true;
+				// led_set_full(false, true, true, false, true, true);
+				// fade_1_time(0x00, 0xFF, 0xFF);
+				// global_music_enable = !global_music_enable;
+				// if (global_music_enable)
+				// 	power_enable_ble();
+				// else
+				// 	power_disable_ble();
+				break;
+
+			case MENU_NOTHING:
+				color[0] = true;
+				color[1] = true;
+				color[2] = true;
+				color[3] = false;
+				color[4] = true;
+				color[5] = false;
 				break;
 
 			default:
+				color[0] = true;
+				color[1] = true;
+				color[2] = true;
+				color[3] = true;
+				color[4] = true;
+				color[5] = true;
 				break;
 		}		
 	}
+	else
+		led_set_full(color[0], color[1], color[2], color[3], color[4], color[5]);
 	sei();
 }
 
@@ -253,10 +290,14 @@ bool button_is_pressed()
 #endif
 }
 
-ISR(TIMER1_COMPB_vect, ISR_BLOCK)
+ISR(TIMER1_COMPA_vect, ISR_BLOCK)
 {
+	TCNT1 = 0;
 	if (button_is_pressed())
 		press_sequence |= press_mask;
 
 	press_mask <<= 1;
+
+	if (press_mask == 0)
+		DISABLE_TIMER1;
 }

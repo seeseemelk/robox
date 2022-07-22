@@ -40,7 +40,7 @@ int main()
 	while (1)
 	{
 		check_if_tired();
-		battery_update();
-		audio_render_effects();
+		// battery_update();
+		// audio_render_effects();
 	}
 }

@@ -19,15 +19,12 @@ void wakey_wakey();
 void nap_time();
 void check_if_tired();
 
-typedef enum {
-    invalid,
-	nothing,
-	shutdown,
-	light_toggle,
-    music_toggle
-} MenuState;
-
 extern volatile bool global_light_enable;
 extern volatile bool global_music_enable;
+
+#define MENU_NOTHING 0
+#define MENU_SHUTDOWN 1
+#define MENU_LIGHT_TOGGLE 2
+#define MENU_MUSIC_TOGGLE 3
 
 #endif /* _PINS_H_ */

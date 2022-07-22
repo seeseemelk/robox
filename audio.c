@@ -49,23 +49,23 @@ void audio_init()
 
 	// Configure Timer 1 to call the output-compare match interrupt
 	// Enable Timer 1 output compare interrupt A
-	SET_BIT(TIMSK, OCIE1A);
+	// SET_BIT(TIMSK, OCIE1A);
 	// Configure the output compare register
-	OCR1A = 80;
+	// OCR1A = 80;
 	// Disable pin output functions
 	// Prescaler: clkIO / 256
-	TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11) | MASK(CS10);
+	// TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11) | MASK(CS10);
 }
 
-ISR(TIMER1_COMPA_vect)
-{
-	// 4Hz loop
-	TCNT1 = 0;
+// ISR(TIMER1_COMPA_vect)
+// {
+// 	// 4Hz loop
+// 	TCNT1 = 0;
 
-	min_time_separation = true;
-	max_previous = max_current * 0.9;
-	max_current = 0;
-}
+// 	min_time_separation = true;
+// 	max_previous = max_current * 0.9;
+// 	max_current = 0;
+// }
 
 u8 amplitude_at(u8 index)
 {
@@ -97,7 +97,7 @@ void fade_1_time(u8 maskR, u8 maskG, u8 maskB)
 	s_breathing_index = 0;
 	u8 max_index = sizeof(s_breath) * 2;
 
-	for (u8 i = 0; i < max_index; i++)
+	for (u8 i = 0; i < max_index; i++, s_breathing_index++)
 		render_battery_effect(maskR, maskG, maskB);
 }
 
