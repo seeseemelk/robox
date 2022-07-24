@@ -1,6 +1,4 @@
 #include "led.h"
-#include "button.h"
-
 #include "config.h"
 #include "defs.h"
 
@@ -35,6 +33,7 @@ static Color _s_led2;
 static bool s_scale = false;
 
 static unsigned int s_counter;
+static u16 rgb_counter = 0;
 
 void led_init()
 {
@@ -74,10 +73,7 @@ u8 scale_brightness_to_max(u8 r, u8 g, u8 b)
 
 void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2)
 {
-	uint8_t mask = LED_MASK_INIT;
-
-	// guard statement
-	if (! global_light_enable) return;	
+	uint8_t mask = LED_MASK_INIT;	
 
 	if (r1)
 		ENABLE_LED(mask, LED1_R);
@@ -126,25 +122,61 @@ void led_disable_scaling()
 	s_scale = false;
 }
 
+void showRGB()
+{
+	// https://uwaterloo.ca/women-in-engineering/sites/ca.women-in-engineering/files/uploads/files/rgb_led.pdf
+	u8 r;
+	u8 g;
+	u8 b;
+	u16 c = rgb_counter % 769;
+
+	if (c <= 255)
+	{
+		r = 255 - c; // red goes from on to off
+		g = c; // green goes from off to on
+		b = 0; // blue is always off
+	}
+	else if (c <= 511)
+	{
+		u8 _c = (c - 256);
+		r = 0; // red is always off
+		g = 255 - _c; // green on to off
+		b = _c; // blue off to on
+	}
+	else
+	{
+		u8 _c = (c - 512);
+		r = _c; // red off to on
+		g = 0; // green is always off
+		b = 255 - _c; // blue on to off
+	}
+	// Now that the brightness values have been set, command the LED
+	// to those values
+	led_set1(r, g, b);
+	led_set2(r, g, b);
+
+	rgb_counter++;
+
+	if (c == 0)
+		rgb_counter = 0;
+}
+
 ISR(TIMER0_COMPA_vect)
 {
 	uint8_t mask = LED_MASK_INIT;
-	if (global_light_enable)
-	{
-		if (s_counter < _s_led1.r)
-			ENABLE_LED(mask, LED1_R);
-		if (s_counter < _s_led1.g)
-			ENABLE_LED(mask, LED1_G);
-		if (s_counter < _s_led1.b)
-			ENABLE_LED(mask, LED1_B);
+	if (s_counter < _s_led1.r)
+		ENABLE_LED(mask, LED1_R);
+	if (s_counter < _s_led1.g)
+		ENABLE_LED(mask, LED1_G);
+	if (s_counter < _s_led1.b)
+		ENABLE_LED(mask, LED1_B);
 
-		if (s_counter < _s_led2.r)
-			ENABLE_LED(mask, LED2_R);
-		if (s_counter < _s_led2.g)
-			ENABLE_LED(mask, LED2_G);
-		if (s_counter < _s_led2.b)
-			ENABLE_LED(mask, LED2_B);
-	}
+	if (s_counter < _s_led2.r)
+		ENABLE_LED(mask, LED2_R);
+	if (s_counter < _s_led2.g)
+		ENABLE_LED(mask, LED2_G);
+	if (s_counter < _s_led2.b)
+		ENABLE_LED(mask, LED2_B);
 
 	s_counter = (s_counter - 1) & 0x3F;
 

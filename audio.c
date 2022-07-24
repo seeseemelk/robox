@@ -4,6 +4,8 @@
 #include "battery.h"
 #include "fix_fft.h"
 #include "led.h"
+#include "timer1.h"
+#include "button.h"
 
 #include <string.h>
 #include <avr/interrupt.h>
@@ -50,22 +52,18 @@ void audio_init()
 	// Configure Timer 1 to call the output-compare match interrupt
 	// Enable Timer 1 output compare interrupt A
 	// SET_BIT(TIMSK, OCIE1A);
-	// Configure the output compare register
-	// OCR1A = 80;
-	// Disable pin output functions
-	// Prescaler: clkIO / 256
-	// TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11) | MASK(CS10);
+	
 }
 
-// ISR(TIMER1_COMPA_vect)
-// {
-// 	// 4Hz loop
-// 	TCNT1 = 0;
+ISR(TIMER1_COMPA_vect)
+{
+	// 4Hz loop
+	TCNT1 = 0;
 
-// 	min_time_separation = true;
-// 	max_previous = max_current * 0.9;
-// 	max_current = 0;
-// }
+	min_time_separation = true;
+	max_previous = max_current * 0.9;
+	max_current = 0;
+}
 
 u8 amplitude_at(u8 index)
 {
@@ -90,15 +88,6 @@ static void render_battery_effect(u8 maskR, u8 maskG, u8 maskB)
 		led_enable_scaling();
 	}
 	s_skip = (s_skip + 1) % 512;
-}
-
-void fade_1_time(u8 maskR, u8 maskG, u8 maskB)
-{
-	s_breathing_index = 0;
-	u8 max_index = sizeof(s_breath) * 2;
-
-	for (u8 i = 0; i < max_index; i++, s_breathing_index++)
-		render_battery_effect(maskR, maskG, maskB);
 }
 
 static u8 distance(u8 a, u8 b)
@@ -134,56 +123,67 @@ void audio_render_effects()
 		break;
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
-		// u8 amplitude_at_1 = 0;
-
-		adc_read_audio_left();
-		s_audio_write_index = 0;
-		memset(s_audio_imag, 0, ARRAY_SIZE);
-
-		// Wait until conversion is ready.
-		while (s_audio_write_index < ARRAY_SIZE) {}
-
-		i16 scale = fix_fft(s_audio_real, s_audio_imag, ARRAY_BITS, false);
-		if (scale == -1)
+		if (global_only_music_enable)
+			break;
+		if (global_night_light_enable == false)
 		{
-			led_set1(0, 8, 0);
-			return;
+			// u8 amplitude_at_1 = 0;
+
+			adc_read_audio_left();
+			s_audio_write_index = 0;
+			memset(s_audio_imag, 0, ARRAY_SIZE);
+
+			// Wait until conversion is ready.
+			while (s_audio_write_index < ARRAY_SIZE) {}
+
+			i16 scale = fix_fft(s_audio_real, s_audio_imag, ARRAY_BITS, false);
+			if (scale == -1)
+			{
+				led_set1(0, 8, 0);
+				return;
+			}
+			else
+			{
+
+				u8 amplitude_at_1 = amplitude_at(1);
+
+				if ((amplitude_at_1 > max_current) && (max_current != 0))
+					max_current = amplitude_at_1;
+
+				if (amplitude_at_1 == 0)
+					min_amplitude = true;
+
+				if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
+				{
+					s_swap = !s_swap;
+					if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
+					{
+						set_led(true,
+							amplitude_at(3),
+							amplitude_at(2),
+							amplitude_at(1)
+						);
+					}
+					if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
+					{
+						set_led(false,
+							amplitude_at(6),
+							amplitude_at(5),
+							amplitude_at(4)
+						);
+					}
+					min_amplitude = false;
+					min_time_separation = false;
+				}
+			}
 		}
 		else
 		{
+			// render nightlight effects
+			showRGB();
 
-			u8 amplitude_at_1 = amplitude_at(1);
-
-			if ((amplitude_at_1 > max_current) && (max_current != 0))
-				max_current = amplitude_at_1;
-
-			if (amplitude_at_1 == 0)
-			{
-				min_amplitude = true;
-			}
-
-			if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
-			{
-				s_swap = !s_swap;
-				if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
-				{
-					set_led(true,
-						amplitude_at(3),
-						amplitude_at(2),
-						amplitude_at(1)
-					);
-				}
-				if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
-				{
-					set_led(false,
-						amplitude_at(6),
-						amplitude_at(5),
-						amplitude_at(4)
-					);
-				}
-				min_amplitude = false;
-				min_time_separation = false;
-			}
+			// setup_25ms_interrupt();
+			// while (counter_25ms<2);
 		}
 		break;
 	}

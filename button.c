@@ -6,25 +6,22 @@
 #include "power.h"
 #include "led.h"
 #include "audio.h"
+#include "timer1.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
-// #include <util/delay.h>
-#include <util/delay_basic.h>
 
 #define ENABLE_ON_INTERRUPT   SET_BIT(GIMSK, INT0)   //Enable External Interrupts Pin change
 #define DISABLE_ON_INTERRUPT  CLEAR_BIT(GIMSK, INT0)
-#define ENABLE_TIMER1  SET_BIT(TIMSK, TOIE1)		// Enable  Timer 1 output compare interrupt A
-#define DISABLE_TIMER1 CLEAR_BIT(TIMSK, TOIE1)		// Disable Timer 1 output compare interrupt A
-#define ONGOING_TIMER1 TEST_BIT_SET(TIMSK, TOIE1)
 
-volatile bool global_light_enable = true;
-volatile bool global_music_enable = true;
+
+volatile bool global_night_light_enable = false;
+volatile bool global_only_music_enable = false;
+volatile u16 night_light_counter = 0;
 volatile u16 press_sequence = 0;
 volatile u16 press_mask = 0;
-volatile bool color[] = {false, true, false, false, true, false};
 
 /**
  * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
@@ -37,9 +34,6 @@ void button_init()
 	ENABLE_ON_INTERRUPT;
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
-
-	OCR1C = 35;	// Timer 1 top value (4.48ms)
-    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);	// Timer 1 clock prescaler
 }
 
 /**
@@ -57,13 +51,12 @@ void wakey_wakey()
 	power_timer1_enable();
 	power_timer0_enable();
 	power_usi_enable();
+	adc_init();	// assuming adc is still configured, make adc enable and disable functions
+	power_enable_ble();
 
 	// Digital Input (buffer) Disable Registers
 	// DIDR0 &= ~(MASK(ADC6D) | MASK(ADC5D) | MASK(ADC4D) | MASK(ADC3D) | MASK(AREFD) | MASK(ADC2D) | MASK(ADC1D) | MASK(ADC0D));
 	// DIDR1 &= ~(MASK(ADC10D) | MASK(ADC9D) | MASK(ADC8D) | MASK(ADC7D));
-
-	adc_init();	// assuming adc is still configured, make adc enable and disable functions
-	power_enable_ble();
 }
 
 /**
@@ -103,6 +96,7 @@ void nap_time()
 void enter_deepsleep()
 {
 	cli();
+	disable_timer1();
 	ENABLE_ON_INTERRUPT;
 	DIDR0 = MASK(AREFD);
 	adc_stop();
@@ -141,21 +135,27 @@ u8 button_press_menu()
 {
 	u8 state = MENU_NOTHING;
 	u8 short_presses = 0;
+	u8 color = 0;
 
 	cli();
-	TCNT1 = 0;
+	setup_button_menu();
 	press_sequence = 0x1;
 	press_mask = 0b10;
 	led_set_full(true, true, true, false, false, false);
 
 	sei();
-	ENABLE_TIMER1;
 	while (press_mask > 0) led_set_full(false, false, true, false, false, true);
-	// DISABLE_TIMER1;
 	cli();
+	led_set_full(false, false, false, false, false, false);
 
 	if (button_is_pressed())
+	{
 		state = MENU_SHUTDOWN;
+
+		// red + white
+		// long press
+		color = MASK(3) | MASK(2) | MASK(1) | MASK(0);
+	}
 	else
 	{
 		for (u16 i = 0; i<12; i++)
@@ -168,10 +168,16 @@ u8 button_press_menu()
 		{
 		case 1:
 			state = MENU_LIGHT_TOGGLE;
+			// green + white
+			// 1x short press
+			color = MASK(4) | MASK(2) | MASK(1) | MASK(0);
 			break;
 		
 		case 2:
 			state = MENU_MUSIC_TOGGLE;
+			// blue + white
+			// 2x short press
+			color = MASK(5) | MASK(2) | MASK(1) | MASK(0);
 			break;
 		
 		default:
@@ -179,6 +185,20 @@ u8 button_press_menu()
 		}
 	}
 	wait_until_depressed();
+	led_set_full(
+		TEST_BIT_SET(color, 0),
+		TEST_BIT_SET(color, 1),
+		TEST_BIT_SET(color, 2),
+		TEST_BIT_SET(color, 3),
+		TEST_BIT_SET(color, 4),
+		TEST_BIT_SET(color, 5)
+	);
+	
+	setup_25ms_interrupt();
+	sei();
+	while(counter_25ms < WAIT_1S);
+	cli();
+
 	return state;
 }
 
@@ -188,73 +208,68 @@ u8 button_press_menu()
  * If pressed configure the MCU to go in sleep mode.
  * 
  */
-void check_if_tired()
+void button_menu()
 {
 	cli();
+	disable_timer1();
+
+	// nightlight sleep check
+	if ((global_night_light_enable) && (night_light_counter >= WAIT_15M))
+		nap_time();
+
 	if (button_is_pressed())
 	{
 		switch (button_press_menu())
 		{
 			case MENU_SHUTDOWN:
-				// red + white
-				// long press
-				color[0] = true;
-				color[1] = true;
-				color[2] = true;
-				color[3] = true;
-				color[4] = false;
-				color[5] = false;
-				// fade_1_time(0xFF, 0x00, 0x00);
 				// going to sleep
-				// enter_deepsleep();
-				// wait_until_depressed();
+				enter_deepsleep();
 				break;
 
 			case MENU_LIGHT_TOGGLE:
-				// green + white
-				// 1x short press
-				color[0] = true;
-				color[1] = true;
-				color[2] = true;
-				color[3] = false;
-				color[4] = true;
-				color[5] = false;
-				// fade_1_time(0xFF, 0x00, 0xFF);
-				// global_light_enable = !global_light_enable;
-				// led_set_full(0, 0, 0, 0, 0, 0);
+				global_night_light_enable = !global_night_light_enable;
+				global_only_music_enable = false;
+				night_light_counter = 0;
+				if (global_night_light_enable)
+				{
+					setup_25ms_interrupt();
+					// disable audio
+					power_disable_ble();
+					power_adc_disable();
+				}
+				else
+				{
+					// enable audio again
+					power_enable_ble();
+					power_adc_enable();
+				}
 				break;
 
 			case MENU_MUSIC_TOGGLE:
-				// blue + white
-				// 2x short press
-				color[0] = true;
-				color[1] = true;
-				color[2] = true;
-				color[3] = false;
-				color[4] = false;
-				color[5] = true;
-				// led_set_full(false, true, true, false, true, true);
-				// fade_1_time(0x00, 0xFF, 0xFF);
-				// global_music_enable = !global_music_enable;
-				// if (global_music_enable)
-				// 	power_enable_ble();
-				// else
-				// 	power_disable_ble();
+				global_only_music_enable = !global_only_music_enable;
+				global_night_light_enable = false;
+				led_set_full(false, false, false, false, false, false);
+				if (global_only_music_enable)
+				{
+					power_enable_ble();
+					power_adc_enable();
+				}
+				else
+				{
+					power_disable_ble();
+					power_adc_disable();
+				}
 				break;
 
 			case MENU_NOTHING:
 			default:
-				color[0] = true;
-				color[1] = true;
-				color[2] = true;
-				color[3] = true;
-				color[4] = true;
-				color[5] = true;
 				break;
 		}		
 	}
-	else
-		led_set_full(color[0], color[1], color[2], color[3], color[4], color[5]);
+
+	if (global_night_light_enable)
+		setup_25ms_interrupt();
+
 	sei();
 }
 
@@ -265,12 +280,13 @@ void check_if_tired()
  */
 ISR(INT0_vect, ISR_BLOCK)
 {
-
 	DISABLE_ON_INTERRUPT;
 	sleep_disable();
 	wakey_wakey();
-	// for (double j = 0; j<20000; j++);	// debounce
-
+	global_only_music_enable = false;
+	global_night_light_enable = false;
+	
+	wait_until_depressed();
 }
 
 
@@ -297,5 +313,5 @@ ISR(TIMER1_OVF_vect, ISR_BLOCK)
 	press_mask <<= 1;
 
 	if (press_mask == 0)
-		DISABLE_TIMER1;
+		disable_timer1();
 }
