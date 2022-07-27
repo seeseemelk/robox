@@ -109,83 +109,85 @@ static void set_led(bool left, u8 r, u8 g, u8 b)
 // static u8 s_status = 0;
 void audio_render_effects()
 {
-	switch (battery_status())
+	u8 state = battery_status();
+	if (!global_only_music_enable)
 	{
-	case BATT_LOW:
-	case BATT_CRIT:
-		render_battery_effect(0xFF, 0x00, 0x00);
-		break;
-	case BATT_CHARGING:
-		render_battery_effect(0xFF, 0xFF, 0x00);
-		break;
-	case BATT_FULL:
-		render_battery_effect(0x00, 0xFF, 0x00);
-		break;
-	case BATT_GOOD:
-	case BATT_UNKNOWN:
-		if (global_only_music_enable)
-			break;
-		if (global_night_light_enable == false)
+		switch (state)
 		{
-			// u8 amplitude_at_1 = 0;
-
-			adc_read_audio_left();
-			s_audio_write_index = 0;
-			memset(s_audio_imag, 0, ARRAY_SIZE);
-
-			// Wait until conversion is ready.
-			while (s_audio_write_index < ARRAY_SIZE) {}
-
-			i16 scale = fix_fft(s_audio_real, s_audio_imag, ARRAY_BITS, false);
-			if (scale == -1)
+		case BATT_LOW:
+		case BATT_CRIT:
+			render_battery_effect(0xFF, 0x00, 0x00);
+			break;
+		case BATT_CHARGING:
+			render_battery_effect(0xFF, 0xFF, 0x00);
+			break;
+		case BATT_FULL:
+			render_battery_effect(0x00, 0xFF, 0x00);
+			break;
+		case BATT_GOOD:
+		case BATT_UNKNOWN:
+			if (!global_night_light_enable)
 			{
-				led_set1(0, 8, 0);
-				return;
-			}
-			else
-			{
+				// u8 amplitude_at_1 = 0;
 
-				u8 amplitude_at_1 = amplitude_at(1);
+				adc_read_audio_left();
+				s_audio_write_index = 0;
+				memset(s_audio_imag, 0, ARRAY_SIZE);
 
-				if ((amplitude_at_1 > max_current) && (max_current != 0))
-					max_current = amplitude_at_1;
+				// Wait until conversion is ready.
+				while (s_audio_write_index < ARRAY_SIZE) {}
 
-				if (amplitude_at_1 == 0)
-					min_amplitude = true;
-
-				if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
+				i16 scale = fix_fft(s_audio_real, s_audio_imag, ARRAY_BITS, false);
+				if (scale == -1)
 				{
-					s_swap = !s_swap;
-					if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
+					led_set1(0, 8, 0);
+					return;
+				}
+				else
+				{
+
+					u8 amplitude_at_1 = amplitude_at(1);
+
+					if ((amplitude_at_1 > max_current) && (max_current != 0))
+						max_current = amplitude_at_1;
+
+					if (amplitude_at_1 == 0)
+						min_amplitude = true;
+
+					if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
 					{
-						set_led(true,
-							amplitude_at(3),
-							amplitude_at(2),
-							amplitude_at(1)
-						);
+						s_swap = !s_swap;
+						if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
+						{
+							set_led(true,
+								amplitude_at(3),
+								amplitude_at(2),
+								amplitude_at(1)
+							);
+						}
+						if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
+						{
+							set_led(false,
+								amplitude_at(6),
+								amplitude_at(5),
+								amplitude_at(4)
+							);
+						}
+						min_amplitude = false;
+						min_time_separation = false;
 					}
-					if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
-					{
-						set_led(false,
-							amplitude_at(6),
-							amplitude_at(5),
-							amplitude_at(4)
-						);
-					}
-					min_amplitude = false;
-					min_time_separation = false;
 				}
 			}
-		}
-		else
-		{
-			// render nightlight effects
-			showRGB();
+			// else
+			// {
+			// 	// render nightlight effects
+			// 	showRGB();
 
-			// setup_25ms_interrupt();
-			// while (counter_25ms<2);
+			// 	// setup_25ms_interrupt();
+			// 	// while (counter_25ms<2);
+			// }
+			break;
 		}
-		break;
 	}
 }
 

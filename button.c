@@ -54,6 +54,8 @@ void wakey_wakey()
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
 
+	led_set_full(0xFF);
+
 	// Digital Input (buffer) Disable Registers
 	// DIDR0 &= ~(MASK(ADC6D) | MASK(ADC5D) | MASK(ADC4D) | MASK(ADC3D) | MASK(AREFD) | MASK(ADC2D) | MASK(ADC1D) | MASK(ADC0D));
 	// DIDR1 &= ~(MASK(ADC10D) | MASK(ADC9D) | MASK(ADC8D) | MASK(ADC7D));
@@ -71,7 +73,7 @@ void nap_time()
 	// SET_BIT(CLKPR, CLKPCE);
 
 	power_disable_ble();
-	led_set_full(0, 0, 0, 0, 0, 0);
+	led_set_full(0x00);
 
 	// power down modules on mcu
 	power_adc_disable();
@@ -141,12 +143,12 @@ u8 button_press_menu()
 	setup_button_menu();
 	press_sequence = 0x1;
 	press_mask = 0b10;
-	led_set_full(true, true, true, false, false, false);
+	led_set_full(0x70);
 
 	sei();
-	while (press_mask > 0) led_set_full(false, false, true, false, false, true);
+	while (press_mask > 0) led_set_full(0x44);
 	cli();
-	led_set_full(false, false, false, false, false, false);
+	led_set_full(0x00);
 
 	if (button_is_pressed())
 	{
@@ -154,7 +156,7 @@ u8 button_press_menu()
 
 		// red + white
 		// long press
-		color = MASK(3) | MASK(2) | MASK(1) | MASK(0);
+		color = MASK(4) | MASK(2) | MASK(1) | MASK(0);
 	}
 	else
 	{
@@ -167,33 +169,34 @@ u8 button_press_menu()
 		switch (short_presses)
 		{
 		case 1:
-			state = MENU_LIGHT_TOGGLE;
-			// green + white
-			// 1x short press
-			color = MASK(4) | MASK(2) | MASK(1) | MASK(0);
-			break;
-		
-		case 2:
 			state = MENU_MUSIC_TOGGLE;
 			// blue + white
+			// 1x short press
+			color = MASK(6) | MASK(2) | MASK(1) | MASK(0);
+			break;
+		case 2:
+			state = MENU_LIGHT_TOGGLE;
+			// green + white
 			// 2x short press
 			color = MASK(5) | MASK(2) | MASK(1) | MASK(0);
 			break;
+		
+
+		// case 3:
+		// 	state = MENU_LIGHT_TOGGLE;
+		// 	// purple + white
+		// 	// 2x short press
+		// 	color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+		// 	break;
+			
 		
 		default:
 			break;
 		}
 	}
 	wait_until_depressed();
-	led_set_full(
-		TEST_BIT_SET(color, 0),
-		TEST_BIT_SET(color, 1),
-		TEST_BIT_SET(color, 2),
-		TEST_BIT_SET(color, 3),
-		TEST_BIT_SET(color, 4),
-		TEST_BIT_SET(color, 5)
-	);
-	
+	led_set_full(color);
+
 	setup_25ms_interrupt();
 	sei();
 	while(counter_25ms < WAIT_1S);
@@ -227,38 +230,32 @@ void button_menu()
 				break;
 
 			case MENU_LIGHT_TOGGLE:
-				global_night_light_enable = !global_night_light_enable;
+				global_night_light_enable = true;
 				global_only_music_enable = false;
 				night_light_counter = 0;
-				if (global_night_light_enable)
-				{
-					setup_25ms_interrupt();
-					// disable audio
-					power_disable_ble();
-					power_adc_disable();
-				}
-				else
-				{
-					// enable audio again
-					power_enable_ble();
-					power_adc_enable();
-				}
+				
+				setup_25ms_interrupt();
+
+				// disable audio
+				power_disable_ble();
+				power_adc_disable();
 				break;
 
 			case MENU_MUSIC_TOGGLE:
-				global_only_music_enable = !global_only_music_enable;
+				global_only_music_enable = true;
 				global_night_light_enable = false;
-				led_set_full(false, false, false, false, false, false);
-				if (global_only_music_enable)
-				{
-					power_enable_ble();
-					power_adc_enable();
-				}
-				else
-				{
-					power_disable_ble();
-					power_adc_disable();
-				}
+				led_set_full(0x00);
+
+				// disable audio
+				power_enable_ble();
+				power_adc_enable();
+
+				break;
+
+			case MENU_NORMAL:
+				wakey_wakey();
+				global_only_music_enable = false;
+				global_night_light_enable = false;
 				break;
 
 			case MENU_NOTHING:

@@ -18,6 +18,6 @@ void led_enable_scaling();
 void led_disable_scaling();
 void showRGB();
 
-void led_set_full(bool r1, bool g1, bool b1, bool r2, bool g2, bool b2);
+void led_set_full(u8 color);
 
 #endif

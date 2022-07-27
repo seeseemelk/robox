@@ -29,5 +29,6 @@ extern u16 main_loop_counter;   // pseudo random source
 #define MENU_SHUTDOWN 1
 #define MENU_LIGHT_TOGGLE 2
 #define MENU_MUSIC_TOGGLE 3
+#define MENU_NORMAL 4
 
 #endif /* _PINS_H_ */

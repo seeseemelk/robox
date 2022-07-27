@@ -39,8 +39,12 @@ int main()
 
 	while (1)
 	{
-		button_menu();
+		// button_menu();
 		battery_update();
-		audio_render_effects();
+		if (global_night_light_enable)
+			showRGB();
+		else
+			setup_beat_detection_counter();
+			audio_render_effects();
 	}
 }
