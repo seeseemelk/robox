@@ -42,6 +42,7 @@ int main()
 	{
 		button_menu();
 		battery_update();
+		sei();
 		if (global_night_light_enable)
 			showRGB();
 		else

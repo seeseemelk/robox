@@ -189,6 +189,7 @@ void showRGB()
 
 	setup_25ms_interrupt();
 	while (counter_25ms < WAIT_100MS);
+		// led_set_full(0x22);
 }
 
 ISR(TIMER0_COMPA_vect)
@@ -214,6 +215,7 @@ ISR(TIMER0_COMPA_vect)
 	s_counter = (s_counter - 1) & 0x3F;
 
 	PORTA = (PORTA & ~PIN_MASKS) | mask;
+	// led_set_full(0x22);
 
 	if (s_counter == 0)
 	{

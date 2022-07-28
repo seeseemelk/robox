@@ -197,7 +197,6 @@ u8 button_press_menu()
 	led_set_full(color);
 
 	setup_25ms_interrupt();
-	sei();
 	while(counter_25ms < WAIT_1S);
 	cli();
 
@@ -239,6 +238,7 @@ void button_menu()
 				// disable audio
 				power_disable_ble();
 				power_adc_disable();
+				led_set_full(0);
 				break;
 
 			case MENU_MUSIC_TOGGLE:
@@ -268,7 +268,7 @@ void button_menu()
 	if (global_night_light_enable)
 		setup_25ms_interrupt();
 
-	// sei();
+	sei();
 }
 
 /**
