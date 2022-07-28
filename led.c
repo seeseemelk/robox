@@ -193,6 +193,9 @@ void showRGB()
 
 ISR(TIMER0_COMPA_vect)
 {
+	if (led_modus != LED_MODUS_PWM)
+		return;
+	
 	uint8_t mask = LED_MASK_INIT;
 	if (s_counter < _s_led1.r)
 		ENABLE_LED(mask, LED1_R);
@@ -210,11 +213,11 @@ ISR(TIMER0_COMPA_vect)
 
 	s_counter = (s_counter - 1) & 0x3F;
 
+	PORTA = (PORTA & ~PIN_MASKS) | mask;
+
 	if (s_counter == 0)
 	{
 		_s_led1 = s_led1;
 		_s_led2 = s_led2;
 	}
-	// if (led_modus == LED_MODUS_PWM)
-		PORTA = (PORTA & ~PIN_MASKS) | mask;
 }

@@ -20,8 +20,10 @@ DEP = $(OBJ:%.o=%.d)
 
 # Flags that will be passed to GCC
 CFLAGS = -mmcu=attiny461a -mint8 -Os -Wall -Wextra -Werror -std=c99 -flto \
-	-DF_CPU=8000000 -gstabs \
-	-L/home/www/avr8-gnu-toolchain-linux_x86_64/avr/lib/avr25
+	-DF_CPU=8000000
+	
+#-gstabs
+# -L/home/www/avr8-gnu-toolchain-linux_x86_64/avr/lib/avr25
 
 # -Wl,-u,vfprintf -lprintf_min -lprintf_min
 

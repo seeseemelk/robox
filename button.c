@@ -140,12 +140,11 @@ u8 button_press_menu()
 	u8 color = 0;
 
 	cli();
-	setup_button_menu();
-	press_sequence = 0x1;
-	press_mask = 0b10;
+	press_sequence = 0;
+	press_mask = 0b1;
 	led_set_full(0x70);
+	setup_button_menu();
 
-	sei();
 	while (press_mask > 0) led_set_full(0x44);
 	cli();
 	led_set_full(0x00);
@@ -230,11 +229,12 @@ void button_menu()
 				break;
 
 			case MENU_LIGHT_TOGGLE:
+				// 2x short press
 				global_night_light_enable = true;
 				global_only_music_enable = false;
 				night_light_counter = 0;
 				
-				setup_25ms_interrupt();
+				// setup_25ms_interrupt();
 
 				// disable audio
 				power_disable_ble();
@@ -242,6 +242,7 @@ void button_menu()
 				break;
 
 			case MENU_MUSIC_TOGGLE:
+				// 1x short press
 				global_only_music_enable = true;
 				global_night_light_enable = false;
 				led_set_full(0x00);
@@ -267,7 +268,7 @@ void button_menu()
 	if (global_night_light_enable)
 		setup_25ms_interrupt();
 
-	sei();
+	// sei();
 }
 
 /**

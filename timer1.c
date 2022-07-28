@@ -43,49 +43,59 @@ volatile u16 counter_25ms = 0;
 
 void setup_button_menu()
 {
-    OCR1C = 35;	// Timer 1 top value (4.48ms)
-    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);	// Timer 1 clock prescaler
-    TCNT1 = 0;
-
+    cli();
     // timer_purpose = PURPOSE_TIMER_MENU;
+    disable_timer1();
+    
+    OCR1C = 35;    // Timer 1 top value (4.48ms)
+    TC1H = 0;
+    TCNT1 = 0;
     ENABLE_TIMER1_OV;
-    DISABLE_TIMER1_A;
-    DISABLE_TIMER1_B;
-    DISABLE_TIMER1_D;
+    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);    // Timer 1 clock prescaler
+
+    sei();
 }
 
 void setup_beat_detection_counter()
 {
+    cli();
+    // timer_purpose = PURPOSE_TIMER_MENU;
+    disable_timer1();
+    
     // Configure the output compare register
-	OCR1A = 80;
-	// Disable pin output functions
-	// Prescaler: clkIO / 256
-	TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11) | MASK(CS10);
+    OCR1A = 80;
+    // Disable pin output functions
+    // Prescaler: clkIO / 256
+
+    TC1H = 0;
+    TCNT1 = 0;
+    ENABLE_TIMER1_A;
+    TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11) | MASK(CS10);
 
     // timer_purpose = PURPOSE_TIMER_BEAT;
-    ENABLE_TIMER1_A;
-    DISABLE_TIMER1_OV;
-    DISABLE_TIMER1_B;
-    DISABLE_TIMER1_D;
+    sei();
 }
 
 void setup_25ms_interrupt()
 {
-    OCR1D = 195;	// Timer 1 top value (25ms)
-    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);	// Timer 1 clock prescaler
+    cli();
+    disable_timer1();
+    
+    OCR1D = 195;    // Timer 1 top value (25ms)
+    TC1H = 0;
     TCNT1 = 0;
+    counter_25ms = 0;
+    ENABLE_TIMER1_B;
+    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);    // Timer 1 clock prescaler
 
     // timer_purpose = PURPOSE_TIMER_DELAY_25MS;
-    ENABLE_TIMER1_B;
-    DISABLE_TIMER1_OV;
-    DISABLE_TIMER1_A;
-    DISABLE_TIMER1_D;
 
-    counter_25ms = 0;
+    sei();
 }
 
 void disable_timer1()
 {
+    TCCR1B = 0;
     DISABLE_TIMER1_OV;
     DISABLE_TIMER1_A;
     DISABLE_TIMER1_B;

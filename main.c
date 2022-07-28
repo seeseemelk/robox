@@ -5,6 +5,7 @@
 #include "led.h"
 #include "power.h"
 #include "defs.h"
+#include "timer1.h"
 
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
@@ -39,12 +40,14 @@ int main()
 
 	while (1)
 	{
-		// button_menu();
+		button_menu();
 		battery_update();
 		if (global_night_light_enable)
 			showRGB();
 		else
+		{
 			setup_beat_detection_counter();
 			audio_render_effects();
+		}
 	}
 }
