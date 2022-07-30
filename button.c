@@ -29,7 +29,7 @@ void button_init()
 {
 	DDRB &= ~(1 << 6);	// configre PB6 as an input
 	
-	ENABLE_ON_INTERRUPT;
+	// ENABLE_ON_INTERRUPT;
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
 }
@@ -95,6 +95,7 @@ void nap_time()
  */
 void enter_deepsleep()
 {
+	global_modus = modus_shutdown;
 	disable_timer1();
 	ENABLE_ON_INTERRUPT;
 	DIDR0 = MASK(AREFD);
@@ -179,15 +180,12 @@ GlobalModus button_press_menu()
 			break;
 		
 
-		// case 3:
-		// 	state = modus_normal;
-		// 	// purple + white
-		// 	// 2x short press
-		// 	color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
-		// 	break;
-			
-		
+		case 3:
 		default:
+			state = modus_normal;
+			// purple + white
+			// 2x short press
+			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
 			break;
 		}
 	}
@@ -236,7 +234,8 @@ void button_menu()
 
 			case modus_music_only:
 				// 1x short press
-				setup_beat_detection_counter();
+				disable_timer1();
+				led_set_full(0x00);
 
 				// disable audio
 				power_enable_ble();

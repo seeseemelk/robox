@@ -187,7 +187,8 @@ void showRGB()
 	s_led1.b = s_led2.b = rgb.b;
 	led_modus = LED_MODUS_PWM;
 
-	setup_25ms_interrupt();
+	// setup_25ms_interrupt();
+	counter_25ms = 0;
 	while (counter_25ms < WAIT_100MS);
 		// led_set_full(0x22);
 }

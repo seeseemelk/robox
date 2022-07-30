@@ -44,12 +44,10 @@ int main()
 		battery_update();
 		if (global_modus == modus_night_light)
 		{
-			sei();
 			showRGB();
 		}
-		else if ((global_modus == modus_normal) || (global_modus == modus_music_only))
+		else if (global_modus == modus_normal)
 		{
-			// sei();
 			led_set_full(0x12);
 		// 	setup_beat_detection_counter();
 			// audio_render_effects();
