@@ -42,13 +42,17 @@ int main()
 	{
 		button_menu();
 		battery_update();
-		sei();
-		if (global_night_light_enable)
-			showRGB();
-		else
+		if (global_modus == modus_night_light)
 		{
-			setup_beat_detection_counter();
-			audio_render_effects();
+			sei();
+			showRGB();
+		}
+		else if ((global_modus == modus_normal) || (global_modus == modus_music_only))
+		{
+			// sei();
+			led_set_full(0x12);
+		// 	setup_beat_detection_counter();
+			// audio_render_effects();
 		}
 	}
 }

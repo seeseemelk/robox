@@ -4,6 +4,7 @@
 #include "button.h"
 #include "led.h"
 #include "power.h"
+#include <avr/interrupt.h>
 
 #define WAIT_READ 0xFFFFU
 
@@ -34,7 +35,9 @@ BatteryState battery_status()
 		if (++s_deepSleepDebounce == 64)
 		{
 			s_lowBattery = true;
+			cli();
 			enter_deepsleep();
+			sei();
 			s_deepSleepDebounce = 0;
 			return BATT_CRIT;
 		}

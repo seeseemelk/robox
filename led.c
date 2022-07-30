@@ -176,7 +176,7 @@ void showRGB()
 		break;
 	}
 
-	if (rgb_counter >= 192)
+	if (rgb_counter >= 191)
 		rgb_counter = 0;
 
 	// led_set1(rgb.r, rgb.g, rgb.b);
@@ -215,7 +215,6 @@ ISR(TIMER0_COMPA_vect)
 	s_counter = (s_counter - 1) & 0x3F;
 
 	PORTA = (PORTA & ~PIN_MASKS) | mask;
-	// led_set_full(0x22);
 
 	if (s_counter == 0)
 	{

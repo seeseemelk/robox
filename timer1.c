@@ -19,9 +19,9 @@
 #define ONGOING_TIMER1_B TEST_BIT_SET(TIMSK, OCIE1B)
 
 // timer 1 D
-#define ENABLE_TIMER1_D  SET_BIT(TIMSK, OCIE1D)
-#define DISABLE_TIMER1_D CLEAR_BIT(TIMSK, OCIE1D)
-#define ONGOING_TIMER1_D TEST_BIT_SET(TIMSK, OCIE1D)
+// #define ENABLE_TIMER1_D  SET_BIT(TIMSK, OCIE1D)
+// #define DISABLE_TIMER1_D CLEAR_BIT(TIMSK, OCIE1D)
+// #define ONGOING_TIMER1_D TEST_BIT_SET(TIMSK, OCIE1D)
 
 
 // #define PURPOSE_TIMER_MENU 0
@@ -95,9 +95,6 @@ ISR(TIMER1_COMPB_vect, ISR_BLOCK)
 	TCNT1 = 0;
     counter_25ms++;
 
-    if (counter_25ms == 0xFFFF)
-        disable_timer1();
-
-    if (global_night_light_enable)
+    if (global_modus == modus_night_light)
         night_light_counter++;
 }
