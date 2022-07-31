@@ -76,7 +76,7 @@ void setup_25ms_interrupt()
     OCR1B = 98;    // Timer 1 top value (25ms)
     counter_25ms = 0;
     ENABLE_TIMER1_B;
-    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);    // Timer 1 clock prescaler
+    TCCR1B = MASK(CS13) | MASK(CS12); // | MASK(CS10);    // Timer 1 clock prescaler
 
     // sei();
 }

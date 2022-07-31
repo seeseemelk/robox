@@ -6,6 +6,7 @@
 
 #define WAIT_1S 40
 #define WAIT_15M 36000
+#define WAIT_1M 2400
 #define WAIT_100MS 4
 
 // extern u8 timer_purpose;

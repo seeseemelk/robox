@@ -21,6 +21,9 @@ volatile u16 night_light_counter = 0;
 volatile u16 press_sequence = 0;
 volatile u16 press_mask = 0;
 
+static volatile bool toggle_music_only = false;
+static volatile bool toggle_nightlight = false;
+
 /**
  * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
  * 
@@ -51,6 +54,9 @@ void wakey_wakey()
 	power_usi_enable();
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
+
+	toggle_music_only = true;
+	toggle_nightlight = false;
 
 	// led_set_full(0xFF);
 
@@ -181,7 +187,7 @@ GlobalModus button_press_menu()
 			break;
 		
 
-		case 3:
+		// case 3:
 		default:
 			state = modus_normal;
 			// purple + white
@@ -201,6 +207,33 @@ GlobalModus button_press_menu()
 	return state;
 }
 
+void _setup_music_only_mode()
+{
+	led_set_full(0x00);
+
+	// disable audio
+	power_enable_ble();
+	// power_adc_enable();
+}
+
+void _setup_normal_mode()
+{
+	wakey_wakey();
+	setup_beat_detection_counter();
+}
+
+void _setup_nightlight_mode()
+{
+	night_light_counter = 0;
+	
+	setup_25ms_interrupt();
+
+// 			// disable audio
+	power_disable_ble();
+	/////////////////// power_adc_disable();
+	// led_set_full(0x00);
+}
+
 /**
  * @brief Function to be used in the main program loop.
  * Checks if on / off button is pressed by polling it.
@@ -216,9 +249,6 @@ void button_menu()
 
 	if (button_is_pressed())
 	{
-		SET_BIT(PORTB, PB0);
-		for (u16 i=0; i<0xFFFF; i++)for (u16 j=0; j<20; j++);
-
 		disable_timer1();
 		global_modus = button_press_menu();
 		disable_timer1();
@@ -231,29 +261,31 @@ void button_menu()
 
 			case modus_night_light:
 				// 2x short press
-				night_light_counter = 0;
-				
-				setup_25ms_interrupt();
-
-	// 			// disable audio
-				power_disable_ble();
-				/////////////////// power_adc_disable();
-				// led_set_full(0x00);
+				if (toggle_nightlight)
+				{
+					_setup_normal_mode();
+					global_modus = modus_normal;
+				}
+				else
+					_setup_nightlight_mode();
+				toggle_nightlight = !toggle_nightlight;
 				break;
 
 			case modus_music_only:
 				// 1x short press
-				led_set_full(0x00);
+				if (toggle_music_only)
+				{
+					_setup_normal_mode();
+					global_modus = modus_normal;
+				}
+				else
+					_setup_music_only_mode();
 
-				// disable audio
-				power_enable_ble();
-				// power_adc_enable();
-
+				toggle_music_only = !toggle_music_only;
 				break;
 
 			case modus_normal:
-				wakey_wakey();
-				setup_beat_detection_counter();
+				_setup_normal_mode();
 				break;
 
 			// case MENU_NOTHING:
@@ -263,12 +295,11 @@ void button_menu()
 	}
 
 	// nightlight sleep check
-	if ((global_modus == modus_night_light) && (night_light_counter >= WAIT_15M))
+	// if ((global_modus == modus_night_light) && (night_light_counter >= WAIT_15M))
+	if ((global_modus == modus_night_light) && (night_light_counter >= WAIT_1M))
 		enter_deepsleep();
 
 	sei();
-	CLEAR_BIT(PORTB, PB0);
-	for (u16 i=0; i<0xFFFF; i++)for (u16 j=0; j<20; j++);
 }
 
 /**
