@@ -52,7 +52,7 @@ void wakey_wakey()
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
 
-	led_set_full(0xFF);
+	// led_set_full(0xFF);
 
 	// Digital Input (buffer) Disable Registers
 	// DIDR0 &= ~(MASK(ADC6D) | MASK(ADC5D) | MASK(ADC4D) | MASK(ADC3D) | MASK(AREFD) | MASK(ADC2D) | MASK(ADC1D) | MASK(ADC0D));
@@ -143,6 +143,7 @@ GlobalModus button_press_menu()
 	led_set_full(0x70);
 
 	setup_button_menu();
+	sei();
 	while (press_mask > 0) led_set_full(0x44);
 	cli();
 
@@ -193,6 +194,7 @@ GlobalModus button_press_menu()
 	led_set_full(color);
 
 	setup_25ms_interrupt();
+	sei();
 	while(counter_25ms < WAIT_1S);
 	cli();
 
@@ -208,11 +210,18 @@ GlobalModus button_press_menu()
 void button_menu()
 {
 	cli();
+	// setup_25ms_interrupt();
+	// global_modus = modus_night_light;
+
 
 	if (button_is_pressed())
 	{
+		SET_BIT(PORTB, PB0);
+		for (u16 i=0; i<0xFFFF; i++)for (u16 j=0; j<20; j++);
+
 		disable_timer1();
 		global_modus = button_press_menu();
+		disable_timer1();
 		switch (global_modus)
 		{
 			case modus_shutdown:
@@ -226,20 +235,19 @@ void button_menu()
 				
 				setup_25ms_interrupt();
 
-				// disable audio
+	// 			// disable audio
 				power_disable_ble();
-				power_adc_disable();
-				led_set_full(0);
+				/////////////////// power_adc_disable();
+				// led_set_full(0x00);
 				break;
 
 			case modus_music_only:
 				// 1x short press
-				disable_timer1();
 				led_set_full(0x00);
 
 				// disable audio
 				power_enable_ble();
-				power_adc_enable();
+				// power_adc_enable();
 
 				break;
 
@@ -259,6 +267,8 @@ void button_menu()
 		enter_deepsleep();
 
 	sei();
+	CLEAR_BIT(PORTB, PB0);
+	for (u16 i=0; i<0xFFFF; i++)for (u16 j=0; j<20; j++);
 }
 
 /**
@@ -266,7 +276,7 @@ void button_menu()
  * Interrupt routine when the MCU wakes up from an on / off button press.
  * 
  */
-ISR(INT0_vect, ISR_BLOCK)
+ISR(INT0_vect)
 {
 	DISABLE_ON_INTERRUPT;
 	sleep_disable();
@@ -291,7 +301,7 @@ bool button_is_pressed()
 #endif
 }
 
-ISR(TIMER1_OVF_vect, ISR_BLOCK)
+ISR(TIMER1_OVF_vect)
 {
 	TCNT1 = 0;
 	if (button_is_pressed())

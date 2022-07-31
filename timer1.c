@@ -31,6 +31,7 @@
 
 // static u8 timer_purpose = PURPOSE_TIMER_MENU;
 volatile u16 counter_25ms = 0;
+static volatile bool test_timer_1 = false;
 
 // bool timer1_in_use()
 // {
@@ -43,40 +44,41 @@ volatile u16 counter_25ms = 0;
 
 void setup_button_menu()
 {
-    cli();
-    disable_timer1();
+    // cli();
+    // disable_timer1();
+    SET_BIT(DDRB, PB0);
     
-    OCR1C = 35;    // Timer 1 top value (4.48ms)
+    OCR1C = 116;    // Timer 1 top value 62.5Hz
     ENABLE_TIMER1_OV;
-    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);    // Timer 1 clock prescaler
+    TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS10);    // Timer 1 clock prescaler
 
-    sei();
+    // sei();
 }
 
 void setup_beat_detection_counter()
 {
-    cli();
-    disable_timer1();
+    // cli();
+    // disable_timer1();
     
     // Configure the output compare register
     OCR1A = 80;
     ENABLE_TIMER1_A;
     TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11) | MASK(CS10);
 
-    sei();
+    // sei();
 }
 
 void setup_25ms_interrupt()
 {
-    cli();
-    disable_timer1();
+    // cli();
+    // disable_timer1();
     
-    OCR1B = 195;    // Timer 1 top value (25ms)
+    OCR1B = 98;    // Timer 1 top value (25ms)
     counter_25ms = 0;
     ENABLE_TIMER1_B;
-    TCCR1B = MASK(CS13); // | MASK(CS11) | MASK(CS10);    // Timer 1 clock prescaler
+    TCCR1B = MASK(CS13) | MASK(CS11) | MASK(CS10);    // Timer 1 clock prescaler
 
-    sei();
+    // sei();
 }
 
 void disable_timer1()
@@ -90,11 +92,17 @@ void disable_timer1()
     // DISABLE_TIMER1_D;
 }
 
-ISR(TIMER1_COMPB_vect, ISR_BLOCK)
+ISR(TIMER1_COMPB_vect)
 {
 	TCNT1 = 0;
     counter_25ms++;
 
     if (global_modus == modus_night_light)
         night_light_counter++;
+
+    // test_timer_1 = !test_timer_1;
+    // if (test_timer_1)
+    //     SET_BIT(PORTB, PB0);
+    // else
+    //     CLEAR_BIT(PORTB, PB0);
 }

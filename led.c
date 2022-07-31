@@ -40,6 +40,8 @@ static u8 s_counter;
 static u16 rgb_counter = 0;
 volatile u8 led_modus = LED_MODUS_PWM;
 
+static volatile bool test_button_interrupt = false;
+
 void led_init()
 {
 	// Configure the LEDs as outputs
@@ -51,13 +53,15 @@ void led_init()
 	// Enable Timer 0 output compare interrupt A
 	TIMSK = MASK(OCIE0A);
 	// Configure the output compare register
-	OCR0A = 4;
+	OCR0A = 38;
 	// Reset timer on output compare
 	TCCR0A = MASK(WGM00);
 	// Prescaler: clkIO / 64
 	TCCR0B = MASK(CS01) | MASK(CS00);
 	// TCCR0B = MASK(CS02);
 	PORTA |= PIN_MASKS;
+
+	SET_BIT(DDRB, PB2);
 }
 
 u8 convertBrightness(u8 value, u8 scale)
@@ -195,6 +199,7 @@ void showRGB()
 
 ISR(TIMER0_COMPA_vect)
 {
+	// led_set_full(0xFF);
 	if (led_modus != LED_MODUS_PWM)
 		return;
 	
@@ -222,4 +227,10 @@ ISR(TIMER0_COMPA_vect)
 		_s_led1 = s_led1;
 		_s_led2 = s_led2;
 	}
+
+	test_button_interrupt = !test_button_interrupt;
+    if (test_button_interrupt)
+        SET_BIT(PORTB, PB2);
+    else
+        CLEAR_BIT(PORTB, PB2);
 }
