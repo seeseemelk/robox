@@ -295,8 +295,7 @@ void button_menu()
 	}
 
 	// nightlight sleep check
-	// if ((global_modus == modus_night_light) && (night_light_counter >= WAIT_15M))
-	if ((global_modus == modus_night_light) && (night_light_counter >= WAIT_1M))
+	if ((global_modus == modus_night_light) && (night_light_counter >= WAIT_15M))
 		enter_deepsleep();
 
 	sei();
