@@ -125,56 +125,60 @@ void audio_render_effects()
 		break;
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
-
-		// u8 amplitude_at_1 = 0;
-
-		adc_read_audio_left();
-		s_audio_write_index = 0;
-		memset(s_audio_imag, 0, ARRAY_SIZE);
-
-		// Wait until conversion is ready.
-		while (s_audio_write_index < ARRAY_SIZE) {}
-
-		i16 scale = fix_fft(s_audio_real, s_audio_imag, ARRAY_BITS, false);
-		if (scale == -1)
+		if (global_modus == mapper_shutdown)
 		{
-			led_set1(0, 8, 0);
-			return;
-		}
-		else
-		{
+			// u8 amplitude_at_1 = 0;
 
-			u8 amplitude_at_1 = amplitude_at(1);
+			adc_read_audio_left();
+			s_audio_write_index = 0;
+			memset(s_audio_imag, 0, ARRAY_SIZE);
 
-			if ((amplitude_at_1 > max_current) && (max_current != 0))
-				max_current = amplitude_at_1;
+			// Wait until conversion is ready.
+			while (s_audio_write_index < ARRAY_SIZE) {}
 
-			if (amplitude_at_1 == 0)
-				min_amplitude = true;
-
-			if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
+			i16 scale = fix_fft(s_audio_real, s_audio_imag, ARRAY_BITS, false);
+			if (scale == -1)
 			{
-				s_swap = !s_swap;
-				if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
+				led_set1(0, 8, 0);
+				return;
+			}
+			else
+			{
+
+				u8 amplitude_at_1 = amplitude_at(1);
+
+				if ((amplitude_at_1 > max_current) && (max_current != 0))
+					max_current = amplitude_at_1;
+
+				if (amplitude_at_1 == 0)
+					min_amplitude = true;
+
+				if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
 				{
-					set_led(true,
-						amplitude_at(3),
-						amplitude_at(2),
-						amplitude_at(1)
-					);
+					s_swap = !s_swap;
+					if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
+					{
+						set_led(true,
+							amplitude_at(3),
+							amplitude_at(2),
+							amplitude_at(1)
+						);
+					}
+					if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
+					{
+						set_led(false,
+							amplitude_at(6),
+							amplitude_at(5),
+							amplitude_at(4)
+						);
+					}
+					min_amplitude = false;
+					min_time_separation = false;
 				}
-				if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
-				{
-					set_led(false,
-						amplitude_at(6),
-						amplitude_at(5),
-						amplitude_at(4)
-					);
-				}
-				min_amplitude = false;
-				min_time_separation = false;
 			}
 		}
+		else if ((global_modus == mapper_night_light) || (global_modus == mapper_music_night_light))
+			showRGB();
 		break;
 	}
 }

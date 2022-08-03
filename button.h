@@ -9,10 +9,19 @@
 
 typedef enum {
     // modus_nothing,
-    modus_shutdown,
-	modus_night_light,
-    modus_music_only,
-    modus_normal
+    press_long,
+    press_1_short,
+    press_2_short,
+    press_nothing
+} ButtonPressPattern;
+
+typedef enum {
+    // modus_nothing,
+    mapper_shutdown,
+	mapper_night_light,
+	mapper_music_night_light,
+    mapper_music_only,
+    mapper_normal_mode
 } GlobalModus;
 
 void enter_deepsleep();

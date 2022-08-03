@@ -16,13 +16,13 @@
 #define ENABLE_ON_INTERRUPT   SET_BIT(GIMSK, INT0)   //Enable External Interrupts Pin change
 #define DISABLE_ON_INTERRUPT  CLEAR_BIT(GIMSK, INT0)
 
-volatile GlobalModus global_modus = modus_normal;
+volatile GlobalModus global_modus = mapper_normal_mode;
 volatile u16 night_light_counter = 0;
 volatile u16 press_sequence = 0;
 volatile u16 press_mask = 0;
 
-static volatile bool toggle_music_only = false;
-static volatile bool toggle_nightlight = false;
+// static volatile bool toggle_music_only = false;
+// static volatile bool toggle_nightlight = false;
 
 /**
  * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
@@ -55,8 +55,8 @@ void wakey_wakey()
 	adc_init();	// assuming adc is still configured, make adc enable and disable functions
 	power_enable_ble();
 
-	toggle_music_only = true;
-	toggle_nightlight = false;
+	// toggle_music_only = true;
+	// toggle_nightlight = false;
 
 	// led_set_full(0xFF);
 
@@ -101,7 +101,7 @@ void nap_time()
  */
 void enter_deepsleep()
 {
-	global_modus = modus_shutdown;
+	global_modus = mapper_shutdown;
 	disable_timer1();
 	ENABLE_ON_INTERRUPT;
 	DIDR0 = MASK(AREFD);
@@ -137,11 +137,10 @@ static void wait_until_depressed()
  * 
  * @return MenuState 
  */
-GlobalModus button_press_menu()
+ButtonPressPattern button_press_menu()
 {
-	GlobalModus state = modus_normal;
+	GlobalModus state = press_nothing;
 	u8 short_presses = 0;
-	u8 color = 0;
 
 	cli();
 	press_sequence = 0;
@@ -156,13 +155,7 @@ GlobalModus button_press_menu()
 	led_set_full(0x00);
 
 	if (button_is_pressed())
-	{
-		state = modus_shutdown;
-
-		// red + white
-		// long press
-		color = MASK(4) | MASK(2) | MASK(1) | MASK(0);
-	}
+		state = press_long;
 	else
 	{
 		for (u16 i = 0; i<12; i++)
@@ -174,64 +167,75 @@ GlobalModus button_press_menu()
 		switch (short_presses)
 		{
 		case 1:
-			state = modus_music_only;
-			// blue + white
-			// 1x short press
-			color = MASK(6) | MASK(2) | MASK(1) | MASK(0);
+			state = press_1_short;
 			break;
 		case 2:
-			state = modus_night_light;
-			// green + white
-			// 2x short press
-			color = MASK(5) | MASK(2) | MASK(1) | MASK(0);
+			state = press_2_short;
 			break;
-		
 
 		// case 3:
 		default:
-			state = modus_normal;
-			// purple + white
-			// 2x short press
-			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+			state = press_nothing;
 			break;
 		}
 	}
-	wait_until_depressed();
-	led_set_full(color);
-
-	setup_25ms_interrupt();
-	sei();
-	while(counter_25ms < WAIT_1S);
-	cli();
 
 	return state;
 }
 
-void _setup_music_only_mode()
+void modus_mapper(ButtonPressPattern state)
 {
-	led_set_full(0x00);
-
-	// disable audio
-	power_enable_ble();
-	// power_adc_enable();
-}
-
-void _setup_normal_mode()
-{
-	wakey_wakey();
-	setup_beat_detection_counter();
-}
-
-void _setup_nightlight_mode()
-{
-	night_light_counter = 0;
+	u8 color = 0;
+	switch (state)
+	{
+	case press_long:
+		global_modus = mapper_shutdown;
+		// red + white
+		color = MASK(4) | MASK(2) | MASK(1) | MASK(0);
+		break;
 	
-	setup_25ms_interrupt();
+	case press_1_short:
+		if (global_modus == mapper_normal_mode)
+		{
+			global_modus = mapper_music_only;
+			// blue + white
+			color = MASK(6) | MASK(2) | MASK(1) | MASK(0);
+		}
+		else if (global_modus == mapper_music_only)
+			global_modus = mapper_music_night_light;
+		else
+		{
+			global_modus = mapper_normal_mode;
+			// purple + white
+			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+		}
 
-// 			// disable audio
-	power_disable_ble();
-	/////////////////// power_adc_disable();
-	// led_set_full(0x00);
+	case press_2_short:
+		if (global_modus == mapper_normal_mode)
+			global_modus = mapper_night_light;
+		else
+		{
+			global_modus = mapper_normal_mode;
+			// purple + white
+			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+		}
+		
+	default:
+		break;
+	}
+
+	if (color != 0)
+	{
+		wait_until_depressed();
+		led_set_full(color);
+
+		setup_25ms_interrupt();
+		sei();
+		while(counter_25ms < WAIT_1S);
+		cli();
+	}
+
+	led_set_full(0x00);
 }
 
 /**
@@ -249,43 +253,43 @@ void button_menu()
 
 	if (button_is_pressed())
 	{
+		disable_timer1();		
+		modus_mapper(
+			button_press_menu()
+		);
 		disable_timer1();
-		global_modus = button_press_menu();
-		disable_timer1();
+
 		switch (global_modus)
 		{
-			case modus_shutdown:
+			case mapper_normal_mode:
+				wakey_wakey();
+				setup_beat_detection_counter();
+				break;
+
+			case mapper_shutdown:
 				// going to sleep
 				enter_deepsleep();
 				break;
 
-			case modus_night_light:
-				// 2x short press
-				if (toggle_nightlight)
-				{
-					_setup_normal_mode();
-					global_modus = modus_normal;
-				}
-				else
-					_setup_nightlight_mode();
-				toggle_nightlight = !toggle_nightlight;
+			case mapper_night_light:
+				night_light_counter = 0;
+	
+				setup_25ms_interrupt();
+
+				// disable audio
+				power_disable_ble();
 				break;
 
-			case modus_music_only:
-				// 1x short press
-				if (toggle_music_only)
-				{
-					_setup_normal_mode();
-					global_modus = modus_normal;
-				}
-				else
-					_setup_music_only_mode();
-
-				toggle_music_only = !toggle_music_only;
+			case mapper_music_night_light:
+				// enable audio
+				power_enable_ble();
 				break;
 
-			case modus_normal:
-				_setup_normal_mode();
+			case mapper_music_only:
+				led_set_full(0x00);
+
+				// disable audio
+				power_enable_ble();
 				break;
 
 			// case MENU_NOTHING:
@@ -295,7 +299,7 @@ void button_menu()
 	}
 
 	// nightlight sleep check
-	if ((global_modus == modus_night_light) && (night_light_counter >= WAIT_15M))
+	if ((global_modus == mapper_night_light) && (night_light_counter >= WAIT_1M))
 		enter_deepsleep();
 
 	sei();
@@ -311,7 +315,7 @@ ISR(INT0_vect)
 	DISABLE_ON_INTERRUPT;
 	sleep_disable();
 	wakey_wakey();
-	global_modus = modus_normal;
+	global_modus = mapper_normal_mode;
 	
 	wait_until_depressed();
 }
