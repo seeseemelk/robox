@@ -214,8 +214,8 @@ void modus_mapper(ButtonPressPattern state)
 		else
 		{
 			global_modus = mapper_normal_mode;
-			// purple + white
-			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+			// green + white
+			color = MASK(5) | MASK(2) | MASK(1) | MASK(0);
 		}
 		break;
 		

@@ -121,8 +121,8 @@ void audio_render_effects()
 		render_battery_effect(0xFF, 0xFF, 0x00);
 		break;
 	case BATT_FULL:
-		render_battery_effect(0x00, 0xFF, 0x00);
-		break;
+		// render_battery_effect(0x00, 0xFF, 0x00);
+		// break;
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
 		if (global_modus == mapper_normal_mode)
