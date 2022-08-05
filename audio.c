@@ -125,7 +125,7 @@ void audio_render_effects()
 		break;
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
-		if (global_modus == mapper_shutdown)
+		if (global_modus == mapper_normal_mode)
 		{
 			// u8 amplitude_at_1 = 0;
 

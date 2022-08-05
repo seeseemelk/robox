@@ -39,13 +39,7 @@ int main()
 {
 	general_init();
 
-	// cli();
-	// setup_25ms_interrupt();
-	// sei();
-
-	// global_modus = modus_night_light;
-
-	SET_BIT(DDRB, PB0);
+	// SET_BIT(DDRB, PB0);
 	while (1)
 	{
 		button_menu();

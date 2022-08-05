@@ -46,7 +46,7 @@ void setup_button_menu()
 {
     // cli();
     // disable_timer1();
-    SET_BIT(DDRB, PB0);
+    // SET_BIT(DDRB, PB0);
     
     OCR1C = 116;    // Timer 1 top value 62.5Hz
     ENABLE_TIMER1_OV;

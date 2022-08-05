@@ -61,7 +61,7 @@ void led_init()
 	// TCCR0B = MASK(CS02);
 	PORTA |= PIN_MASKS;
 
-	SET_BIT(DDRB, PB2);
+	// SET_BIT(DDRB, PB2);
 }
 
 u8 convertBrightness(u8 value, u8 scale)
@@ -228,9 +228,9 @@ ISR(TIMER0_COMPA_vect)
 		_s_led2 = s_led2;
 	}
 
-	test_button_interrupt = !test_button_interrupt;
-    if (test_button_interrupt)
-        SET_BIT(PORTB, PB2);
-    else
-        CLEAR_BIT(PORTB, PB2);
+	// test_button_interrupt = !test_button_interrupt;
+    // if (test_button_interrupt)
+    //     SET_BIT(PORTB, PB2);
+    // else
+    //     CLEAR_BIT(PORTB, PB2);
 }

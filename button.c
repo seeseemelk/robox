@@ -145,7 +145,6 @@ ButtonPressPattern button_press_menu()
 	cli();
 	press_sequence = 0;
 	press_mask = 0b1;
-	led_set_full(0x70);
 
 	setup_button_menu();
 	sei();
@@ -172,8 +171,6 @@ ButtonPressPattern button_press_menu()
 		case 2:
 			state = press_2_short;
 			break;
-
-		// case 3:
 		default:
 			state = press_nothing;
 			break;
@@ -206,9 +203,10 @@ void modus_mapper(ButtonPressPattern state)
 		else
 		{
 			global_modus = mapper_normal_mode;
-			// purple + white
-			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+			// green + white
+			color = MASK(5) | MASK(2) | MASK(1) | MASK(0);
 		}
+		break;
 
 	case press_2_short:
 		if (global_modus == mapper_normal_mode)
@@ -219,6 +217,7 @@ void modus_mapper(ButtonPressPattern state)
 			// purple + white
 			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
 		}
+		break;
 		
 	default:
 		break;
@@ -281,6 +280,8 @@ void button_menu()
 				break;
 
 			case mapper_music_night_light:
+				setup_25ms_interrupt();
+				
 				// enable audio
 				power_enable_ble();
 				break;
