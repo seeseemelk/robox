@@ -100,6 +100,8 @@ static u8 distance(u8 a, u8 b)
 
 static void set_led(bool left, u8 r, u8 g, u8 b)
 {
+	led_enable_scaling();
+	
 	if (left != s_swap)
 		led_set1(r, g, b);
 	else

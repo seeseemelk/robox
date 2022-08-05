@@ -198,8 +198,6 @@ void modus_mapper(ButtonPressPattern state)
 			// blue + white
 			color = MASK(6) | MASK(2) | MASK(1) | MASK(0);
 		}
-		else if (global_modus == mapper_music_only)
-			global_modus = mapper_music_night_light;
 		else
 		{
 			global_modus = mapper_normal_mode;
@@ -210,6 +208,8 @@ void modus_mapper(ButtonPressPattern state)
 
 	case press_2_short:
 		if (global_modus == mapper_normal_mode)
+			global_modus = mapper_music_night_light;
+		else if (global_modus == mapper_music_night_light)
 			global_modus = mapper_night_light;
 		else
 		{
