@@ -41,6 +41,7 @@ static u16 rgb_counter = 0;
 volatile u8 led_modus = LED_MODUS_PWM;
 
 static volatile bool test_button_interrupt = false;
+volatile u16 ticks_20ms = 0;
 
 void led_init()
 {
@@ -226,7 +227,10 @@ ISR(TIMER0_COMPA_vect)
 	{
 		_s_led1 = s_led1;
 		_s_led2 = s_led2;
+		
+		ticks_20ms++;
 	}
+
 
 	// test_button_interrupt = !test_button_interrupt;
     // if (test_button_interrupt)
