@@ -25,6 +25,8 @@ static u8 max_previous = 20;
 static u8 max_current = 0;
 static u8 state_previous = BATT_UNKNOWN;
 
+static volatile i16 color_buffer [6];
+
 const i8 s_breath[] PROGMEM =
 {
 	0,  0,  0,  0,  0,  0,  0,
@@ -42,7 +44,6 @@ static i8 breathing_at(i8 point)
 }
 static u16 s_breathing_index = 0;
 static u16 s_skip = 0;
-static bool s_swap = false;
 
 void audio_init()
 {
@@ -56,16 +57,6 @@ void audio_init()
 	
 }
 
-ISR(TIMER1_COMPA_vect)
-{
-	// 4Hz loop
-	TCNT1 = 0;
-
-	min_time_separation = true;
-	max_previous = max_current * 0.9;
-	max_current = 0;
-}
-
 u8 amplitude_at(u8 index)
 {
 	i16 real = s_audio_real[index];
@@ -73,6 +64,12 @@ u8 amplitude_at(u8 index)
 
 	i16 magnitude = (real * real) + (imag * imag);
 	return magnitude / 256 / 4;
+}
+
+void copy_amplitude()
+{
+	for (u8 i=0; i<6; i++)
+		color_buffer[i] = amplitude_at(i+1);
 }
 
 static void render_battery_effect(u8 maskR, u8 maskG, u8 maskB)
@@ -84,8 +81,8 @@ static void render_battery_effect(u8 maskR, u8 maskG, u8 maskB)
 		i8 breathingB = breathing_at(s_breathing_index + sizeof(s_breath));
 		s_breathing_index = (s_breathing_index + 1) % (sizeof(s_breath) * 2);
 
-		led_set1(breathingA & maskR, breathingA & maskG, breathingA & maskB);
-		led_set2(breathingB & maskR, breathingB & maskG, breathingB & maskB);
+		led_set(&led1, breathingA & maskR, breathingA & maskG, breathingA & maskB, true);
+		led_set(&led2, breathingB & maskR, breathingB & maskG, breathingB & maskB, true);
 		led_enable_scaling();
 	}
 	s_skip = (s_skip + 1) % 512;
@@ -99,17 +96,6 @@ static u8 distance(u8 a, u8 b)
 		return b - a;
 }
 
-static void set_led(bool left, u8 r, u8 g, u8 b)
-{
-	led_enable_scaling();
-	
-	if (left != s_swap)
-		led_set1(r, g, b);
-	else
-		led_set2(r, g, b);
-}
-
-// static u8 s_status = 0;
 void audio_render_effects()
 {
 	u8 state = battery_status();
@@ -124,8 +110,6 @@ void audio_render_effects()
 		render_battery_effect(0xFF, 0xFF, 0x00);
 		break;
 	case BATT_FULL:
-		// render_battery_effect(0x00, 0xFF, 0x00);
-		// break;
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
 		if ((state_previous == BATT_LOW) || (state_previous == BATT_CRIT) || (state_previous == BATT_CHARGING))
@@ -135,21 +119,15 @@ void audio_render_effects()
 		}
 		if (global_modus == mapper_normal_mode)
 		{
-			// u8 amplitude_at_1 = 0;
-
 			adc_read_audio_left();
 			s_audio_write_index = 0;
-			memset(s_audio_imag, 0, ARRAY_SIZE);
 
 			// Wait until conversion is ready.
-			while (s_audio_write_index < ARRAY_SIZE) {}
+			while (s_audio_write_index < ARRAY_SIZE);
 
 			i16 scale = fix_fft(s_audio_real, s_audio_imag, ARRAY_BITS, false);
 			if (scale == -1)
-			{
-				led_set1(0, 8, 0);
-				return;
-			}
+				led_set(&led1, 0, 8, 0, true);
 			else
 			{
 
@@ -163,23 +141,9 @@ void audio_render_effects()
 
 				if ((min_time_separation == true) && distance(max_previous, amplitude_at_1) > 4 )
 				{
-					s_swap = !s_swap;
-					if (amplitude_at(1) || amplitude_at(2) || amplitude_at(3))
-					{
-						set_led(true,
-							amplitude_at(3),
-							amplitude_at(2),
-							amplitude_at(1)
-						);
-					}
-					if (amplitude_at(4) || amplitude_at(5) || amplitude_at(6))
-					{
-						set_led(false,
-							amplitude_at(6),
-							amplitude_at(5),
-							amplitude_at(4)
-						);
-					}
+					led_enable_scaling();
+					led_set(&led1, color_buffer[0], color_buffer[1], color_buffer[2], false);
+					led_set(&led2, color_buffer[3], color_buffer[4], color_buffer[5], false);
 					min_amplitude = false;
 					min_time_separation = false;
 				}
@@ -195,18 +159,24 @@ void audio_render_effects()
 	state_previous = state;
 }
 
-static bool s_decimate = false;
 void audio_on_read_left(u8 value)
 {
-	if (s_decimate)
+	u8 index = s_audio_write_index;
+	if (index < ARRAY_SIZE)
 	{
-		u8 index = s_audio_write_index;
-		if (index < ARRAY_SIZE)
-		{
-			s_audio_real[index] = value;
-			s_audio_write_index = index + 1;
-		}
+		s_audio_real[index] = value;
+		s_audio_write_index = index + 1;
 	}
+}
 
-	s_decimate = !s_decimate;
+ISR(TIMER1_COMPA_vect)
+{
+	// 4Hz loop
+	TCNT1 = 0;
+
+	min_time_separation = true;
+	max_previous = max_current * 0.9;
+	max_current = 0;
+
+	copy_amplitude();
 }

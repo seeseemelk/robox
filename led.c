@@ -30,8 +30,8 @@
 #define LED_MODUS_PWM 0
 #define LED_MODUS_FULL 1
 
-static Color s_led1;
-static Color s_led2;
+volatile Color led1;
+volatile Color led2;
 static Color _s_led1;
 static Color _s_led2;
 static bool s_scale = false;
@@ -42,6 +42,7 @@ volatile u8 led_modus = LED_MODUS_PWM;
 
 static volatile bool test_button_interrupt = false;
 volatile u16 ticks_20ms = 0;
+static u8 variate_color = 0;
 
 void led_init()
 {
@@ -114,28 +115,28 @@ void led_set_full(u8 color)
 	PORTA = (PORTA & ~PIN_MASKS) | mask;
 }
 
-void led_set1(u8 r, u8 g, u8 b)
+void led_set(volatile Color *led, u8 r, u8 g, u8 b, bool show_white)
 {
 	i16 scale = 63;
 
 	led_modus = LED_MODUS_PWM;
 	if (s_scale)
 		scale = scale_brightness_to_max(r, g, b);
-	s_led1.r = convertBrightness(r, scale);
-	s_led1.g = convertBrightness(g, scale);
-	s_led1.b = convertBrightness(b, scale);
-}
+	led->r = convertBrightness(r, scale);
+	led->g = convertBrightness(g, scale);
+	led->b = convertBrightness(b, scale);
 
-void led_set2(u8 r, u8 g, u8 b)
-{
-	i16 scale = 63;
-
-	led_modus = LED_MODUS_PWM;
-	if (s_scale)
-		scale = scale_brightness_to_max(r, g, b);
-	s_led2.r = convertBrightness(r, scale);
-	s_led2.g = convertBrightness(g, scale);
-	s_led2.b = convertBrightness(b, scale);
+	if ((show_white == false) && (led->r > 50) && (led->g > 50) && (led->b > 50))
+	{
+		variate_color++;
+		led_set(
+			led,
+			(variate_color & 0x3F),
+			(ticks_20ms & 0x3F),
+			0,
+			true
+		);
+	}
 }
 
 void led_enable_scaling()
@@ -184,23 +185,17 @@ void showRGB()
 	if (rgb_counter >= 191)
 		rgb_counter = 0;
 
-	// led_set1(rgb.r, rgb.g, rgb.b);
-	// led_set2(rgb.r, rgb.g, rgb.b);
-
-	s_led1.r = s_led2.r = rgb.r;
-	s_led1.g = s_led2.g = rgb.g;
-	s_led1.b = s_led2.b = rgb.b;
+	led1.r = led2.r = rgb.r;
+	led1.g = led2.g = rgb.g;
+	led1.b = led2.b = rgb.b;
 	led_modus = LED_MODUS_PWM;
 
-	// setup_25ms_interrupt();
 	counter_25ms = 0;
 	while (counter_25ms < WAIT_100MS);
-		// led_set_full(0x22);
 }
 
 ISR(TIMER0_COMPA_vect)
 {
-	// led_set_full(0xFF);
 	if (led_modus != LED_MODUS_PWM)
 		return;
 	
@@ -225,16 +220,9 @@ ISR(TIMER0_COMPA_vect)
 
 	if (s_counter == 0)
 	{
-		_s_led1 = s_led1;
-		_s_led2 = s_led2;
+		_s_led1 = led1;
+		_s_led2 = led2;
 		
 		ticks_20ms++;
 	}
-
-
-	// test_button_interrupt = !test_button_interrupt;
-    // if (test_button_interrupt)
-    //     SET_BIT(PORTB, PB2);
-    // else
-    //     CLEAR_BIT(PORTB, PB2);
 }

@@ -61,7 +61,7 @@ void setup_beat_detection_counter()
     // disable_timer1();
     
     // Configure the output compare register
-    OCR1A = 80;
+    OCR1A = 160;
     ENABLE_TIMER1_A;
     TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS11) | MASK(CS10);
 

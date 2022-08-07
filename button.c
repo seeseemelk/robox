@@ -21,9 +21,6 @@ volatile u16 night_light_counter = 0;
 volatile u16 press_sequence = 0;
 volatile u16 press_mask = 0;
 
-// static volatile bool toggle_music_only = false;
-// static volatile bool toggle_nightlight = false;
-
 /**
  * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
  * 
@@ -246,9 +243,6 @@ void modus_mapper(ButtonPressPattern state)
 void button_menu()
 {
 	cli();
-	// setup_25ms_interrupt();
-	// global_modus = modus_night_light;
-
 
 	if (button_is_pressed())
 	{
@@ -293,14 +287,13 @@ void button_menu()
 				power_enable_ble();
 				break;
 
-			// case MENU_NOTHING:
 			default:
 				break;
 		}		
 	}
 
 	// nightlight sleep check
-	if ((global_modus == mapper_night_light) && (night_light_counter >= WAIT_1M))
+	if ((global_modus == mapper_night_light) && (night_light_counter >= WAIT_15M))
 		enter_deepsleep();
 
 	sei();

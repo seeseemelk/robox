@@ -35,6 +35,5 @@ void button_menu();
 
 extern volatile GlobalModus global_modus;
 extern volatile u16 night_light_counter;
-extern u16 main_loop_counter;   // pseudo random source
 
 #endif /* _PINS_H_ */

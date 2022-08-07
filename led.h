@@ -14,8 +14,7 @@ typedef struct
 } Color;
 
 void led_init();
-void led_set1(u8 r, u8 g, u8 b);
-void led_set2(u8 r, u8 g, u8 b);
+void led_set(volatile Color *led, u8 r, u8 g, u8 b, bool show_white);
 void led_enable_scaling();
 void led_disable_scaling();
 void showRGB();
@@ -23,5 +22,7 @@ void showRGB();
 void led_set_full(u8 color);
 
 extern volatile u16 ticks_20ms;
+extern volatile Color led1;
+extern volatile Color led2;
 
 #endif
