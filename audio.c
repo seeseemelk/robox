@@ -23,6 +23,7 @@ static bool min_time_separation = true;
 
 static u8 max_previous = 20;
 static u8 max_current = 0;
+static u8 state_previous = BATT_UNKNOWN;
 
 const i8 s_breath[] PROGMEM =
 {
@@ -127,6 +128,11 @@ void audio_render_effects()
 		// break;
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
+		if ((state_previous == BATT_LOW) || (state_previous == BATT_CRIT) || (state_previous == BATT_CHARGING))
+		{
+			s_breathing_index = 0;
+			led_set_full(0x00);
+		}
 		if (global_modus == mapper_normal_mode)
 		{
 			// u8 amplitude_at_1 = 0;
@@ -181,8 +187,12 @@ void audio_render_effects()
 		}
 		else if ((global_modus == mapper_night_light) || (global_modus == mapper_music_night_light))
 			showRGB();
+		else
+			led_set_full(0x00);
 		break;
 	}
+
+	state_previous = state;
 }
 
 static bool s_decimate = false;
