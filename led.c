@@ -42,7 +42,7 @@ volatile u8 led_modus = LED_MODUS_PWM;
 
 static volatile bool test_button_interrupt = false;
 volatile u16 ticks_20ms = 0;
-static u8 variate_color = 0;
+static volatile u8 variate_color = 0;
 
 void led_init()
 {

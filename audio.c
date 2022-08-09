@@ -149,7 +149,7 @@ void audio_render_effects()
 				}
 			}
 		}
-		else if ((global_modus == mapper_night_light) || (global_modus == mapper_music_night_light))
+		else if ((global_modus == mapper_night_light) || (global_modus == mapper_music_rgb) || (global_modus == mapper_music_night_light))
 			showRGB();
 		else
 			led_set_full(0x00);

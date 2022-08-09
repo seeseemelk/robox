@@ -195,6 +195,8 @@ void modus_mapper(ButtonPressPattern state)
 			// blue + white
 			color = MASK(6) | MASK(2) | MASK(1) | MASK(0);
 		}
+		else if (global_modus == mapper_music_only)
+			global_modus = mapper_music_rgb;
 		else
 		{
 			global_modus = mapper_normal_mode;
@@ -274,6 +276,15 @@ void button_menu()
 				break;
 
 			case mapper_music_night_light:
+				night_light_counter = 0;
+	
+				setup_25ms_interrupt();
+
+				// disable audio
+				power_enable_ble();
+				break;
+
+			case mapper_music_rgb:
 				setup_25ms_interrupt();
 				
 				// enable audio
@@ -293,8 +304,11 @@ void button_menu()
 	}
 
 	// nightlight sleep check
-	if ((global_modus == mapper_night_light) && (night_light_counter >= WAIT_15M))
-		enter_deepsleep();
+	if (night_light_counter >= WAIT_15M)
+	{
+		if ((global_modus == mapper_night_light) || (global_modus == mapper_music_night_light))
+			enter_deepsleep();
+	}
 
 	sei();
 }

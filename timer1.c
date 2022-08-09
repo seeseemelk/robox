@@ -97,7 +97,7 @@ ISR(TIMER1_COMPB_vect)
 	TCNT1 = 0;
     counter_25ms++;
 
-    if (global_modus == mapper_night_light)
+    if ((global_modus == mapper_night_light) || (global_modus == mapper_music_night_light))
         night_light_counter++;
 
     // test_timer_1 = !test_timer_1;

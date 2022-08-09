@@ -20,6 +20,7 @@ typedef enum {
     mapper_shutdown,
 	mapper_night_light,
 	mapper_music_night_light,
+    mapper_music_rgb,
     mapper_music_only,
     mapper_normal_mode
 } GlobalModus;

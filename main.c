@@ -22,7 +22,8 @@ void general_init()
 	battery_init();
 	button_init();
 	audio_init();
-	power_enable_ble();
+
+	wakey_wakey();
 	setup_beat_detection_counter();
 
 	SET_BIT(MCUCR, PUD);	// disable pull-ups
