@@ -323,6 +323,7 @@ ISR(INT0_vect)
 	DISABLE_ON_INTERRUPT;
 	sleep_disable();
 	wakey_wakey();
+	setup_beat_detection_counter();
 	global_modus = mapper_normal_mode;
 	
 	wait_until_depressed();
