@@ -25,8 +25,16 @@ void battery_update()
 
 BatteryState battery_status()
 {
-	while (s_value == WAIT_READ);
-	u16 _value = s_value;
+	u16 value;
+	do
+	{
+		cli();
+		value = s_value;
+		sei();
+	}
+	while (value == WAIT_READ);
+	//while (s_value == WAIT_READ);
+	//u16 _value = s_value;
 	// _value = 330 << 1;
 
 	if (power_is_psu_standby())
@@ -41,7 +49,7 @@ BatteryState battery_status()
 		s_debounce_bat_low = false;
 		return BATT_CHARGING;
 	}
-	else if (_value < CENTI_VOLTS_TO_VALUE(320))
+	else if (value < CENTI_VOLTS_TO_VALUE(320))
 	{
 		s_debounce_bat_low = false;
 
@@ -62,19 +70,20 @@ BatteryState battery_status()
 			return BATT_CRIT;
 		// }
 	}
-	else if (_value < CENTI_VOLTS_TO_VALUE(350))
+	else if (value < CENTI_VOLTS_TO_VALUE(350))
 	{
 		// s_debounce_bat_critical = false;
 		// debounce provides 30s timeout
 		if (s_debounce_bat_low == false)
 		{
 			s_debounce_bat_low = true;
+			cli();
 			ticks_20ms = 0;
+			sei();
 		}
 
 		if (ticks_20ms >= TICKS_20MS_30S)
 		{
-			ticks_20ms = TICKS_20MS_30S;
 			return BATT_LOW;
 		}
 		// return BATT_LOW;

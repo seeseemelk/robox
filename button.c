@@ -23,12 +23,12 @@ volatile u16 press_mask = 0;
 
 /**
  * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
- * 
+ *
  */
 void button_init()
 {
 	DDRB &= ~(1 << 6);	// configre PB6 as an input
-	
+
 	// ENABLE_ON_INTERRUPT;
 	// level interrupt INT0 (low level)
     MCUCR &= ~((1 << ISC01) | (1 << ISC00));
@@ -37,7 +37,7 @@ void button_init()
 /**
  * @brief Function to be called when the interupt awakes the mcu from sleeping.
  * It will powerup all mcu modules + bluetooth module and amp.
- * 
+ *
  */
 void wakey_wakey()
 {
@@ -65,7 +65,7 @@ void wakey_wakey()
 /**
  * @brief Function to be called when the off command is given.
  * Places the mcu and oher components in low power mode.
- * 
+ *
  */
 void nap_time()
 {
@@ -94,7 +94,7 @@ void nap_time()
  * @brief Call to place the MCU itself in a low power mode.
  * Be sure to configure an interupt that can wake the MCU from the "Power Down"
  * sleep mode.
- * 
+ *
  */
 void enter_deepsleep()
 {
@@ -114,8 +114,8 @@ void enter_deepsleep()
 /**
  * @brief Function that returns only if the button is released (after being pressed down)
  * Also does some debouncing.
- * 
- * @return u16 
+ *
+ * @return u16
  */
 static void wait_until_depressed()
 {
@@ -131,12 +131,12 @@ static void wait_until_depressed()
 
 /**
  * @brief Detection mechanism long and x-amount of short presses
- * 
- * @return MenuState 
+ *
+ * @return MenuState
  */
 ButtonPressPattern button_press_menu()
 {
-	GlobalModus state = press_nothing;
+	ButtonPressPattern state = press_nothing;
 	u8 short_presses = 0;
 
 	cli();
@@ -187,7 +187,7 @@ void modus_mapper(ButtonPressPattern state)
 		// red + white
 		color = MASK(4) | MASK(2) | MASK(1) | MASK(0);
 		break;
-	
+
 	case press_1_short:
 		if (global_modus == mapper_normal_mode)
 		{
@@ -217,7 +217,7 @@ void modus_mapper(ButtonPressPattern state)
 			color = MASK(5) | MASK(2) | MASK(1) | MASK(0);
 		}
 		break;
-		
+
 	default:
 		break;
 	}
@@ -240,7 +240,7 @@ void modus_mapper(ButtonPressPattern state)
  * @brief Function to be used in the main program loop.
  * Checks if on / off button is pressed by polling it.
  * If pressed configure the MCU to go in sleep mode.
- * 
+ *
  */
 void button_menu()
 {
@@ -248,7 +248,7 @@ void button_menu()
 
 	if (button_is_pressed())
 	{
-		disable_timer1();		
+		disable_timer1();
 		modus_mapper(
 			button_press_menu()
 		);
@@ -268,7 +268,7 @@ void button_menu()
 
 			case mapper_night_light:
 				night_light_counter = 0;
-	
+
 				setup_25ms_interrupt();
 
 				// disable audio
@@ -277,7 +277,7 @@ void button_menu()
 
 			case mapper_music_night_light:
 				night_light_counter = 0;
-	
+
 				setup_25ms_interrupt();
 
 				// disable audio
@@ -286,7 +286,7 @@ void button_menu()
 
 			case mapper_music_rgb:
 				setup_25ms_interrupt();
-				
+
 				// enable audio
 				power_enable_ble();
 				break;
@@ -300,7 +300,7 @@ void button_menu()
 
 			default:
 				break;
-		}		
+		}
 	}
 
 	// nightlight sleep check
@@ -316,7 +316,7 @@ void button_menu()
 /**
  * @brief Construct a new ISR object
  * Interrupt routine when the MCU wakes up from an on / off button press.
- * 
+ *
  */
 ISR(INT0_vect)
 {
@@ -325,14 +325,14 @@ ISR(INT0_vect)
 	wakey_wakey();
 	setup_beat_detection_counter();
 	global_modus = mapper_normal_mode;
-	
+
 	wait_until_depressed();
 }
 
 
 /**
  * @brief Poll manually if button is pressed. (active low)
- * 
+ *
  * @return bool, true if pressed down, false if not pressed.
  */
 bool button_is_pressed()

@@ -85,17 +85,17 @@ u8 scale_brightness_to_max(u8 r, u8 g, u8 b)
 
 /**
  * @brief Set leds to full brightness.
- * @param color 
+ * @param color
  * Least significant nibble: led 1
  * Most significant nibble: led 2
- * 
+ *
  * nibble bit 1: red component
  * nibble bit 2: green component
  * nibble bit 3: blue component
  */
 void led_set_full(u8 color)
 {
-	uint8_t mask = LED_MASK_INIT;	
+	uint8_t mask = LED_MASK_INIT;
 
 	led_modus = LED_MODUS_FULL;
 	if (TEST_BIT_SET(color, 0))
@@ -176,7 +176,7 @@ void showRGB()
 		rgb.g = 0; // green is always off
 		rgb.b = 0x3F - _c; // blue on to off
 		break;
-	
+
 	default:
 		rgb_counter = 0;
 		break;
@@ -198,7 +198,7 @@ ISR(TIMER0_COMPA_vect)
 {
 	if (led_modus != LED_MODUS_PWM)
 		return;
-	
+
 	uint8_t mask = LED_MASK_INIT;
 	if (s_counter < _s_led1.r)
 		ENABLE_LED(mask, LED1_R);
@@ -222,7 +222,8 @@ ISR(TIMER0_COMPA_vect)
 	{
 		_s_led1 = led1;
 		_s_led2 = led2;
-		
-		ticks_20ms++;
+
+		if (ticks_20ms != 0xFFFF)
+			ticks_20ms++;
 	}
 }
