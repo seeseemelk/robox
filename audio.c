@@ -47,14 +47,14 @@ static u16 s_skip = 0;
 
 void audio_init()
 {
-	// timer for beat detection 
+	// timer for beat detection
 	// to guarantee min time separation between beats of max 250 BPM
 	// 250 BPM = 4ms
 
 	// Configure Timer 1 to call the output-compare match interrupt
 	// Enable Timer 1 output compare interrupt A
 	// SET_BIT(TIMSK, OCIE1A);
-	
+
 }
 
 u8 amplitude_at(u8 index)
@@ -175,7 +175,7 @@ ISR(TIMER1_COMPA_vect)
 	TCNT1 = 0;
 
 	min_time_separation = true;
-	max_previous = max_current * 0.9;
+	max_previous = max_current - (max_current / 10);
 	max_current = 0;
 
 	copy_amplitude();
