@@ -23,7 +23,7 @@ static bool min_time_separation = true;
 
 static u8 max_previous = 20;
 static u8 max_current = 0;
-static u8 state_previous = BATT_UNKNOWN;
+// static u8 state_previous = BATT_UNKNOWN;
 
 static volatile i16 color_buffer [6];
 
@@ -112,11 +112,11 @@ void audio_render_effects()
 	case BATT_FULL:
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
-		if ((state_previous == BATT_LOW) || (state_previous == BATT_CRIT) || (state_previous == BATT_CHARGING))
-		{
-			s_breathing_index = 0;
-			led_set_full(0x00);
-		}
+		// if ((state_previous == BATT_LOW) || (state_previous == BATT_CRIT) || (state_previous == BATT_CHARGING))
+		// {
+		// 	s_breathing_index = 0;
+		// 	led_set_full(0x00);
+		// }
 		if (global_modus == mapper_normal_mode)
 		{
 			adc_read_audio_left();
@@ -156,7 +156,7 @@ void audio_render_effects()
 		break;
 	}
 
-	state_previous = state;
+	// state_previous = state;
 }
 
 void audio_on_read_left(u8 value)

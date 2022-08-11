@@ -40,7 +40,6 @@ int main()
 {
 	general_init();
 
-	// SET_BIT(DDRB, PB0);
 	while (1)
 	{
 		button_menu();
