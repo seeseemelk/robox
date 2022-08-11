@@ -159,13 +159,17 @@ void audio_render_effects()
 	// state_previous = state;
 }
 
+static bool s_decimate = false;
 void audio_on_read_left(u8 value)
 {
-	u8 index = s_audio_write_index;
-	if (index < ARRAY_SIZE)
+	if (s_decimate)
 	{
-		s_audio_real[index] = value;
-		s_audio_write_index = index + 1;
+		u8 index = s_audio_write_index;
+		if (index < ARRAY_SIZE)
+		{
+			s_audio_real[index] = value;
+			s_audio_write_index = index + 1;
+		}
 	}
 }
 
@@ -174,6 +178,7 @@ ISR(TIMER1_COMPA_vect)
 	// 4Hz loop
 	TCNT1 = 0;
 
+	s_decimate = !s_decimate;
 	min_time_separation = true;
 	max_previous = max_current - (max_current / 10);
 	max_current = 0;

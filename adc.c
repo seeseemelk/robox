@@ -89,7 +89,7 @@ ISR(ADC_vect)
 		s_input = INPUT_AUDIO_LEFT;
 		break;
 	case INPUT_BATTERY:
-		voltage = ADCL;
+		voltage = ((u16) ADCL) & 0xFF;
 		voltage |= (((u16) ADCH) << 8);
 		battery_on_read(voltage);
 		break;
