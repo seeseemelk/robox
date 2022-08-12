@@ -9,8 +9,9 @@
 #define WAIT_READ 0xFFFFU
 
 static volatile u16 s_value;
-static volatile bool s_debounce_bat_critical = false;
-static volatile bool s_debounce_bat_low = false;
+static bool s_debounce_bat_critical = false;
+static bool s_debounce_bat_low = false;
+static bool s_flag_bat_low = false;
 
 void battery_init()
 {
@@ -51,28 +52,28 @@ BatteryState battery_status()
 	}
 	else if (value < CENTI_VOLTS_TO_VALUE(320))
 	{
-		s_debounce_bat_low = false;
+		// debounce provides 30s timeout
+		if ((s_debounce_bat_critical == false) && (s_flag_bat_low))
+		{
+			s_debounce_bat_critical = true;
+			cli();
+			ticks_20ms = 0;
+			sei();
+		}
 
-		// // debounce provides 30s timeout
-		// if (s_debounce_bat_critical == false)
-		// {
-		// 	s_debounce_bat_critical = true;
-		// 	ticks_20ms = 0;
-		// }
-
-		// if (ticks_20ms >= TICKS_20MS_30S)
-		// {
+		if (ticks_20ms >= TICKS_20MS_30S)
+		{
 			// ticks_20ms = TICKS_20MS_30S;
 			cli();
 			enter_deepsleep();
 			sei();
 			s_debounce_bat_critical = false;
 			return BATT_CRIT;
-		// }
+		}
 	}
-	else if (value < CENTI_VOLTS_TO_VALUE(350))
+	if (value < CENTI_VOLTS_TO_VALUE(350))
 	{
-		// s_debounce_bat_critical = false;
+		//s_debounce_bat_critical = false;
 		// debounce provides 30s timeout
 		if (s_debounce_bat_low == false)
 		{
@@ -82,18 +83,19 @@ BatteryState battery_status()
 			sei();
 		}
 
-		if (ticks_20ms >= TICKS_20MS_30S)
+		if ((ticks_20ms >= TICKS_20MS_30S) || (s_flag_bat_low))
 		{
+			s_flag_bat_low = true;
 			return BATT_LOW;
 		}
 		// return BATT_LOW;
 	}
-	// else if (_value >= CENTI_VOLTS_TO_VALUE(350))
-	// {
-	// // 	s_debounce_bat_critical = false;
-	// 	s_debounce_bat_low = false;
-	// 	led_set_full(0x44);
-	// }
+	else if (value >= CENTI_VOLTS_TO_VALUE(350))
+	{
+		s_flag_bat_low = false;
+		s_debounce_bat_critical = false;
+		s_debounce_bat_low = false;
+	}
 
 	return BATT_GOOD;
 }

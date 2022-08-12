@@ -23,7 +23,8 @@ static bool min_time_separation = true;
 
 static u8 max_previous = 20;
 static u8 max_current = 0;
-// static u8 state_previous = BATT_UNKNOWN;
+static bool s_decimate = false;
+static u8 state_previous = BATT_UNKNOWN;
 
 static volatile i16 color_buffer [6];
 
@@ -112,12 +113,12 @@ void audio_render_effects()
 	case BATT_FULL:
 	case BATT_GOOD:
 	case BATT_UNKNOWN:
-		// if ((state_previous == BATT_LOW) || (state_previous == BATT_CRIT) || (state_previous == BATT_CHARGING))
-		// {
-		// 	s_breathing_index = 0;
-		// 	led_set_full(0x00);
-		// }
-		if (global_modus == mapper_normal_mode)
+		if ((state_previous == BATT_LOW) || (state_previous == BATT_CRIT) || (state_previous == BATT_CHARGING))
+		{
+			s_breathing_index = 0;
+			led_set_full(0x00);
+		}
+		else if (global_modus == mapper_normal_mode)
 		{
 			adc_read_audio_left();
 			s_audio_write_index = 0;
@@ -131,7 +132,7 @@ void audio_render_effects()
 			else
 			{
 
-				u8 amplitude_at_1 = amplitude_at(1);
+				u8 amplitude_at_1 = amplitude_at(2);
 
 				if ((amplitude_at_1 > max_current) && (max_current != 0))
 					max_current = amplitude_at_1;
@@ -156,10 +157,9 @@ void audio_render_effects()
 		break;
 	}
 
-	// state_previous = state;
+	state_previous = state;
 }
 
-static bool s_decimate = false;
 void audio_on_read_left(u8 value)
 {
 	if (s_decimate)
@@ -171,6 +171,7 @@ void audio_on_read_left(u8 value)
 			s_audio_write_index = index + 1;
 		}
 	}
+	s_decimate = !s_decimate;
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -178,7 +179,6 @@ ISR(TIMER1_COMPA_vect)
 	// 4Hz loop
 	TCNT1 = 0;
 
-	s_decimate = !s_decimate;
 	min_time_separation = true;
 	max_previous = max_current - (max_current / 10);
 	max_current = 0;

@@ -43,7 +43,7 @@ void adc_init()
 	ADCSRA =
 		MASK(ADEN) | // Enable ADC
 		MASK(ADIE) | // Enable ADC interrupt
-		MASK(ADPS1) | MASK(ADPS0) | // Set ADC prescaler to 8
+		MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0) | // Set ADC prescaler to 8
 		MASK(ADATE) | // ADC Auto Trigger
 		MASK(ADSC); // Start converting
 }
