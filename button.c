@@ -18,8 +18,8 @@
 
 volatile GlobalModus global_modus = mapper_normal_mode;
 volatile u16 night_light_counter = 0;
-volatile u16 press_sequence = 0;
-volatile u16 press_mask = 0;
+volatile u32 press_sequence = 0U;
+volatile u32 press_mask = 0U;
 
 /**
  * @brief Initialisation function for the mcu on / off button and INT0 interrupt.
@@ -154,7 +154,7 @@ ButtonPressPattern button_press_menu()
 		state = press_long;
 	else
 	{
-		for (u16 i = 0; i<12; i++)
+		for (u16 i = 0; i<(32-4); i++)
 		{
 			if (((press_sequence >> i) & 0xF) == 0b0011)
 				short_presses++;
@@ -196,7 +196,11 @@ void modus_mapper(ButtonPressPattern state)
 			color = MASK(6) | MASK(2) | MASK(1) | MASK(0);
 		}
 		else if (global_modus == mapper_music_only)
+		{
 			global_modus = mapper_music_rgb;
+			// light blue + white
+			color = MASK(6) | MASK(5) | MASK(2) | MASK(1) | MASK(0);
+		}
 		else
 		{
 			global_modus = mapper_normal_mode;
@@ -207,9 +211,17 @@ void modus_mapper(ButtonPressPattern state)
 
 	case press_2_short:
 		if (global_modus == mapper_normal_mode)
+		{
 			global_modus = mapper_music_night_light;
+			// yellow + white
+			color = MASK(5) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+		}
 		else if (global_modus == mapper_music_night_light)
+		{
 			global_modus = mapper_night_light;
+			// purple + white
+			color = MASK(6) | MASK(4) | MASK(2) | MASK(1) | MASK(0);
+		}
 		else
 		{
 			global_modus = mapper_normal_mode;
@@ -350,8 +362,8 @@ ISR(TIMER1_OVF_vect)
 	if (button_is_pressed())
 		press_sequence |= press_mask;
 
-	press_mask <<= 1;
+	press_mask <<= 1U;
 
-	if (press_mask == 0)
+	if (press_mask == 0U)
 		disable_timer1();
 }

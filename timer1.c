@@ -47,10 +47,10 @@ void setup_button_menu()
     // cli();
     // disable_timer1();
     // SET_BIT(DDRB, PB0);
-    
-    OCR1C = 116;    // Timer 1 top value 62.5Hz
+
+    OCR1C = 116;    // Timer 1 top value 125Hz
     ENABLE_TIMER1_OV;
-    TCCR1B = MASK(CS13) | MASK(CS12) | MASK(CS10);    // Timer 1 clock prescaler
+    TCCR1B = MASK(CS13) | MASK(CS12);    // Timer 1 clock prescaler
 
     // sei();
 }
@@ -59,7 +59,7 @@ void setup_beat_detection_counter()
 {
     // cli();
     // disable_timer1();
-    
+
     // Configure the output compare register
     OCR1A = 160;
     ENABLE_TIMER1_A;
@@ -72,7 +72,7 @@ void setup_25ms_interrupt()
 {
     // cli();
     // disable_timer1();
-    
+
     OCR1B = 98;    // Timer 1 top value (25ms)
     counter_25ms = 0;
     ENABLE_TIMER1_B;
