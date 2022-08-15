@@ -40,7 +40,7 @@ flash: $(ELF)
 	avrdude -p t461 -c stk500 -P /dev/ttyUSB0 -U flash:w:$(ELF) -v
 
 mk2: $(ELF)
-	avrdude -c avrisp2 -p t461 -v -U flash:w:$(ELF)
+	avrdude -c avrisp2 -p t461 -v -U flash:w:$(ELF) -U lfuse:w:0xe2:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 
 help:
 	@echo "Targets:"
