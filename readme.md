@@ -1,5 +1,17 @@
 # Robox project
 
+## Project information
+
+All info about the project can be found on the wiki. (work in progress)
+This contains info on the hardware, firmware, manuals, ...
+(wiki main page here)[https://github.com/seeseemelk/robox/wiki]
+
+## Supporting the project
+
+Do you like the project? Please consider supporting us! We are working on a V2 which will be easier to produce on our side and assemble on your side.
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://ko-fi.com/robox)
+
 ## Attiny source code
 
 ### Installation Microchip toolchain
