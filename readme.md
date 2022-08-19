@@ -4,7 +4,7 @@
 
 All info about the project can be found on the wiki. (work in progress)
 This contains info on the hardware, firmware, manuals, ...
-(wiki main page here)[https://github.com/seeseemelk/robox/wiki]
+https://github.com/seeseemelk/robox/wiki
 
 ## Supporting the project
 
